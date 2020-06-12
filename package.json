@@ -1,0 +1,36 @@
+{
+	"name": "@fiddleplum/arenasplode",
+	"version": "0.0.0",
+	"description": "A visualization engine for the web.",
+	"private": false,
+	"scripts": {
+		"setup": "yarn install; mkdir -p dist; cp src/config.example.js dist/config.js",
+		"update": "yarn install --no-default-rc",
+		"build": "webpack --config webpack.dev.js",
+		"build-production": "webpack --config webpack.prod.js",
+		"start": "webpack-dev-server --config webpack.dev.js --content-base src/"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fiddleplum/arenasplode.git"
+	},
+	"author": "Stephen Hurley",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/fiddleplum/arenasplode/issues"
+	},
+	"homepage": "https://github.com/fiddleplum/arenasplode",
+	"devDependencies": {
+		"eslint": "latest",
+		"@typescript-eslint/parser": "latest",
+		"@typescript-eslint/eslint-plugin": "latest",
+		"raw-loader": "latest",
+		"ts-loader": "latest",
+		"typescript": "latest",
+		"webpack": "latest",
+		"webpack-cli": "latest",
+		"webpack-dev-server": "latest",
+		"webpack-merge": "latest",
+		"copy-webpack-plugin": "latest"
+	}
+}
