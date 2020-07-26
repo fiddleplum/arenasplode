@@ -1,12 +1,20 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-	entry: './src/index.ts',
+	entry: './src/app.ts',
 	output: {
 		filename: 'script.js'
 	},
 	resolve: {
 		extensions: ['.ts', '.js']
+	},
+	devServer:{
+		contentBase: 'src',
+		watchContentBase: true
+	},
+	watchOptions: {
+		aggregateTimeout: 1000,
+		poll: 1000,
 	},
 	module: {
 		rules: [{
