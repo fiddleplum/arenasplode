@@ -5,6 +5,7 @@ export class Tile {
 export namespace Tile {
 	export enum Type {
 		Floor,
-		Wall
+		Wall,
+		NumTiles
 	}
 }

@@ -1,16 +1,25 @@
 import { Birch } from '../../birch/src/index';
-import { Map } from './map';
+import { MapComponent } from './map';
+import { Player } from './player';
 
 export class App {
-	private _birch: Birch.Engine;
-
+	/** Constructs the app. */
 	constructor() {
 		this._birch = new Birch.Engine(document.querySelector('div') as HTMLDivElement);
-		this.createIntroScreen();
+		this._initializeWorld();
+		this._birch.input.setControllerConnectedCallback((index: number, connected: boolean) => {
+			if (connected) {
+				this._addPlayer(index);
+			}
+			else {
+				this._removePlayer(index);
+			}
+		});
+		this._addPlayer(1);
 	}
 
+	/** Destructs the app. */
 	destroy(): void {
-
 	}
 
 	/** Gets the Birch engine. */
@@ -18,19 +27,66 @@ export class App {
 		return this._birch;
 	}
 
-	/** Creates the intro screen for number of players selection. */
-	createIntroScreen(): void {
-		const viewport = this._birch.createViewport();
-		const div = viewport.getDiv();
-		div.style.left = '0';
-		div.style.top = '0';
-		div.style.width = '100%';
-		div.style.height = '100%';
-		viewport.setClearColor(new Birch.Color(0, 0, 0, 1));
-
-		const world = this._birch.createWorld();
-		world.createEntity
+	/** Gets the world. */
+	get world(): Birch.World {
+		return this._world;
 	}
+
+	/** Gets the players. */
+	get players(): Birch.OrderedMap<number, Player> {
+		return this._players;
+	}
+
+	/** Initialize world. */
+	private _initializeWorld(): void {
+		this._world = this._birch.createWorld();
+		const mapEntity = this._world.createEntity();
+		this._map = mapEntity.createComponent(MapComponent);
+	}
+
+	/** Add a player. */
+	private _addPlayer(index: number): void {
+		const player = new Player(this, index);
+		this._players.set(index, player);
+
+		// Adjust the viewports for all players.
+		const numPlayers = this._players.size;
+		const div = document.querySelector('div') as HTMLDivElement;
+		let numColumns = Math.ceil(div.clientWidth / div.clientHeight * Math.sqrt(numPlayers));
+		if (numColumns > numPlayers) {
+			numColumns = numPlayers;
+		}
+		const numRows = Math.ceil(numPlayers / numColumns);
+		console.log(numPlayers, numColumns, numRows);
+		let i = 0;
+		for (const playerEntry of this._players) {
+			const viewport = playerEntry.value.viewport;
+			const row = Math.floor(i / numColumns);
+			const col = i % numColumns;
+			viewport.getDiv().style.left = (col / numColumns * 100) + '%';
+			viewport.getDiv().style.top = (row / numRows * 100) + '%';
+			viewport.getDiv().style.width = 'calc(' + (1 / numColumns * 100) + '% - 2px)';
+			viewport.getDiv().style.height = 'calc(' + (1 / numRows * 100) + '% - 2px)';
+			i++;
+		}
+	}
+
+	/** Remove a player. */
+	private _removePlayer(index: number): void {
+		const player = this._players.get(index);
+		if (player !== undefined) {
+			player.destroy();
+			this._players.remove(index);
+		}
+	}
+
+	private _birch: Birch.Engine;
+
+	private _world!: Birch.World;
+
+	private _map!: MapComponent;
+
+	private _players: Birch.OrderedMap<number, Player> = new Birch.OrderedMap();
 }
 
 declare global {
