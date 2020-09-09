@@ -1,56 +1,62 @@
-import { Birch } from '../../birch/src/index';
-import { Tile } from './tile';
+import { Birch } from '../../../birch/src/index';
+import { Tile } from '../tile';
 
-export class MapComponent extends Birch.Component {
-	constructor(entity: Birch.Entity) {
+export class MapComponent extends Birch.World.ModelComponent {
+	constructor(entity: Birch.World.Entity) {
 		super(entity);
 
-		this._mesh = this.engine.renderer.createMesh();
-		this._mesh.setVertexFormat([[
-			new Birch.Render.Mesh.Component(0, 'float', 2, false), // position
-			new Birch.Render.Mesh.Component(1, 'float', 2, false)]]); // uv
-		this._shader = this.engine.renderer.createShader();
-		const vertexCode = `#version 300 es
-		in vec2 a_position;
-		in vec2 a_uv;
-		out vec2 v_uv;
-		void main() {
-			gl_Position = vec4(a_position / 25.0, 0.0, 1.0);
-			v_uv = a_uv;
-		}`;
-		const fragmentCode = `#version 300 es
-		precision highp float;
-		uniform sampler2D colorTexture;
-		in vec2 v_uv;
-		out vec4 o_color;
-		void main() {
-			vec3 color = texture(colorTexture, v_uv).rgb;
-			o_color = vec4(color, 1);
-		}`;
-		this._shader.setCodeAndAttributes(vertexCode, fragmentCode, new Map<string, number>([['a_position', 0], ['a_uv', 1]]));
-		this._texture = this.engine.renderer.createTexture();
-		this._texture.setSource('assets/tiles.png');
-		this._shader.setTexture(this._shader.getUniformLocation('colorTexture'), 0);
-		this._model = this.engine.renderer.createModel();
-		this._model.mesh = this._mesh;
-		this._model.shader = this._shader;
-		this._model.textures.push(this._texture);
-		this.entity.world.scene.models.add(this._model);
-		this._mesh.setVertices(0, [
-			0, 0, 0, 0,
-			1, 0, 1, 0,
-			0, 0.5, 0, 1
-		], false);
-		this._mesh.setIndices([0, 1, 2], false);
+		// Create the mesh.
+		this._mesh = this.engine.renderer.meshes.create();
+		this._mesh.setVertexFormat([[{
+			location: 0, // position
+			type: 'float',
+			dimensions: 2
+		}, {
+			location: 1, // uv
+			type: 'float',
+			dimensions: 2
+		}]]);
 
+		this._shader = this.engine.renderer.shaders.create();
+
+		// Create the texture.
+		this._texture = this.engine.renderer.textures.create();
+		this._texture.setSource('assets/sprites/tiles.png');
+
+		// Create the model.
+		this.model.mesh = this._mesh;
+		this.model.shader = this._shader;
+
+		// Set the model's uniforms.
+		this.model.uniforms.setUniformTypes([{
+			name: 'modelMatrix',
+			type: Birch.Render.Uniforms.Type.mat4x4
+		}, {
+			name: 'colorTexture',
+			type: Birch.Render.Uniforms.Type.sampler2D
+		}]);
+		this.model.uniforms.setUniform('colorTexture', this._texture);
+
+		// Set the size of the map.
 		this.size = new Birch.Vector2(25, 25);
+
+		// Create the shader.
+		this.engine.downloader.getJson<Birch.Render.Shader.Options>('assets/shaders/sprite.json').then((json) => {
+			this._shader.setFromOptions(json);
+
+		});
 	}
 
 	destroy(): void {
-		this.engine.renderer.destroyModel(this._model);
+		this.engine.renderer.textures.destroy(this._texture);
+		this.engine.renderer.shaders.destroy(this._shader);
+		this.engine.renderer.meshes.destroy(this._mesh);
 	}
 
 	set size(size: Birch.Vector2) {
+		if (this._mesh === undefined) {
+			return;
+		}
 		this._size.copy(size);
 		this._tiles = [];
 		for (let y = 0; y < this._size.y; y++) {
@@ -102,5 +108,4 @@ export class MapComponent extends Birch.Component {
 	private _mesh: Birch.Render.Mesh;
 	private _shader: Birch.Render.Shader;
 	private _texture: Birch.Render.Texture;
-	private _model: Birch.Render.Model;
 }

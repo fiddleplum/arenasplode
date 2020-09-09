@@ -1,4 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require('path');
 
 module.exports = {
 	entry: './src/app.ts',
@@ -31,6 +32,9 @@ module.exports = {
 				from: 'src/index.html'
 			}, {
 				from: 'src/config.js',
+				noErrorOnMissing: true
+			}, {
+				from: 'src/favicon.*',
 				noErrorOnMissing: true
 			}, {
 				from: 'src/assets',

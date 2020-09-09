@@ -1,0 +1,33 @@
+{
+	"attributeLocations": {
+		"a_position": 0,
+		"a_uv": 1
+	},
+	"vertex": [
+		"#version 300 es",
+		"in vec2 a_position;",
+		"in vec2 a_uv;",
+		"uniform stage {",
+		"  mat4 viewMatrix;",
+		"  mat4 projectionMatrix;",
+		"  vec2 renderSize;",
+		"};",
+		"uniform model {",
+		"  mat4 modelMatrix;",
+		"};",
+		"out vec2 v_uv;",
+		"void main() {",
+		"  gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(a_position, 0.0, 1.0);",
+		"  v_uv = a_uv;",
+		"}"],
+	"fragment": [
+		"#version 300 es",
+		"precision highp float;",
+		"uniform sampler2D colorTexture;",
+		"in vec2 v_uv;",
+		"out vec4 o_color;",
+		"void main() {",
+		"  vec3 color = texture(colorTexture, v_uv).rgb;",
+		"  o_color = vec4(color, 1);",
+		"}"]
+}
