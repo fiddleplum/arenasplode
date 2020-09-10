@@ -26,6 +26,12 @@ module.exports = {
 			use: 'raw-loader'
 		}]
 	},
+	stats: {
+		assets: false
+	},
+	devServer: {
+		stats: 'errors-only'
+	},
 	plugins: [
 		new CopyWebpackPlugin({
 			patterns: [{
