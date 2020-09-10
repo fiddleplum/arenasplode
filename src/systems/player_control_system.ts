@@ -26,10 +26,10 @@ export class PlayerControlSystem extends Birch.World.System {
 					// This is not optimal. Redo the position getting and setting.
 					const position = characterFrame.position;
 					characterFrame.position = new Birch.Vector3(position.x + x, position.y - y, position.z);
-					const cameraFrame = player.camera.components.getFirstOfType(Birch.World.FrameComponent);
-					if (cameraFrame !== undefined) {
-						cameraFrame.position = new Birch.Vector3(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
-					}
+					// const cameraFrame = player.camera.components.getFirstOfType(Birch.World.FrameComponent);
+					// if (cameraFrame !== undefined) {
+					// 	cameraFrame.position = new Birch.Vector3(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
+					// }
 				}
 			}
 		}

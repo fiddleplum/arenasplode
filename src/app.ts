@@ -2,6 +2,7 @@ import { Birch } from '../../birch/src/index';
 import { MapComponent } from './components/map_component';
 import { Player } from './player';
 import { PlayerControlSystem } from './systems/player_control_system';
+import { CameraCenteringSystem } from './systems/camera_centering_system';
 
 export class App {
 	/** Constructs the app. */
@@ -44,6 +45,7 @@ export class App {
 		this._world = this._birch.worlds.create('main');
 		this._world.systems.create(Birch.World.FrameModelSystem, 'frameModel');
 		this._world.systems.create(PlayerControlSystem, 'playerControl');
+		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
 
 		const mapEntity = this._world.entities.create('map');
 		this._map = mapEntity.components.create(MapComponent, 'map');

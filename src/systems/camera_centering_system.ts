@@ -1,10 +1,15 @@
 import { Birch } from '../../../birch/src/index';
-import { PlayerComponent } from '../components/player_component';
+import { StatusComponent } from '../components/status_component';
+// import { PlayerComponent } from '../components/player_component';
 
+/**
+ * This system monitors frame events and moves the camera appropriately.
+ * It gets the entity of the frame, and gets the corresponding camera entity's frame.
+ * It also gets the player component of the character entity and changes things depending on the mode.
+ */
 export class CameraCenteringSystem extends Birch.World.System {
-	constructor(world: Birch.World.World) {
+	constructor() {
 		super();
-		this._world = world;
 
 		this.monitorComponentTypes([Birch.World.FrameComponent, Birch.World.CameraComponent]);
 
@@ -27,39 +32,82 @@ export class CameraCenteringSystem extends Birch.World.System {
 
 	// I would like a away to see a component or entity's name.
 
-	/** Process any events. */
-	processEvent(component: Birch.World.Component, event: symbol): void {
-		if (event === Birch.World.Entity.ComponentCreated) {
-			if (component instanceof FrameComponent) {
-				if (component.entity.n
+	update(): void {
+		const players = window.app.players;
+		for (const entry of players) {
+			const player = entry.value;
+			const characterFrame = player.character.get(Birch.World.FrameComponent, 0) as Birch.World.FrameComponent;
+			const characterStatus = player.character.get(StatusComponent, 0) as StatusComponent;
+			const cameraFrame = player.camera.get(Birch.World.FrameComponent, 0) as Birch.World.FrameComponent;
+			const newPosition = new Birch.Vector3();
+			if (characterStatus.stuck) {
+				newPosition.copy(cameraFrame.position);
 			}
-			else if (component instanceof CameraComponent) {
-				const frameComponent = component.entity.components.getFirstOfType(FrameComponent);
-				if (frameComponent !== undefined) {
-					this.subscribeToComponent(frameComponent);
-				}
+			else {
+				newPosition.set(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
 			}
-		}
-		else if (event === Birch.World.Component.ComponentDestroyed) {
-			if (component instanceof CameraComponent || component instanceof FrameComponent) {
-				this.unsubscribeFromComponent(component);
+			const newOrientation = new Birch.Quaternion();
+			if (characterStatus.drunk) {
+				const rotation = new Birch.Quaternion();
+				characterStatus.drunkRotationSpeed += (Math.random() - 0.5) * 1;
+				characterStatus.drunkRotationSpeed = Birch.Num.clamp(characterStatus.drunkRotationSpeed, -1, 1);
+				characterStatus.drunkRotation += characterStatus.drunkRotationSpeed;
+				newOrientation.setFromAxisAngle(Birch.Vector3.UnitZ, characterStatus.drunkRotation * Math.PI / 180);
+				newOrientation.mult(rotation, newOrientation);
 			}
-		}
-		else {
-			const frameComponent = component as Birch.World.FrameComponent;
-			const modelComponents = component.entity.components.getAllOfType(ModelComponent);
-			if (modelComponents !== undefined) {
-				for (const modelComponent of modelComponents) {
-					modelComponent.model.uniforms.setUniform('modelMatrix', frameComponent.localToWorld.array);
-				}
+			if (characterStatus.tilted) {
+				newPosition.y -= 8.0;
+				const rotation = new Birch.Quaternion();
+				rotation.setFromEulerAngles(45 * Math.PI / 180, 0, 0);
+				newOrientation.mult(newOrientation, rotation);
 			}
+			cameraFrame.position = newPosition;
+			cameraFrame.orientation = newOrientation;
 		}
 	}
 
-	private _world: Birch.World.World;
+	// /** Process any events. */
+	// processEvent(component: Birch.World.Component, event: symbol): void {
+	// 	if (event === Birch.World.Entity.ComponentCreated) {
+	// 		if (component instanceof Birch.World.FrameComponent) {
+	// 			// If the frame is a character.
+	// 			const componentName: string | undefined = component.entity.name;
+	// 			if (componentName !== undefined && componentName.startsWith('character ')) {
+	// 				this.subscribeToComponent(component);
+	// 			}
+	// 		}
+	// 		else if (component instanceof Birch.World.CameraComponent) {
+	// 			const frameComponent = component.entity.components.getFirstOfType(Birch.World.FrameComponent);
+	// 			if (frameComponent !== undefined) {
+	// 				this.subscribeToComponent(frameComponent);
+	// 			}
+	// 		}
+	// 	}
+	// 	else if (event === Birch.World.Component.ComponentDestroyed) {
+	// 		this.unsubscribeFromComponent(component);
+	// 		this._cameras.delete(component as Birch.World.FrameComponent);
+	// 	}
+	// 	else {
+	// 		const characterFrame = component as Birch.World.FrameComponent;
+	// 		let cameraFrame = this._cameras.get(characterFrame);
+	// 		if (cameraFrame === undefined) {
+	// 			const entityName = characterFrame.entity.name as string;
+	// 			const playerNumber = entityName.substring('character '.length);
+	// 			const cameraEntity = characterFrame.entity.world.entities.get('camera ' + playerNumber);
+	// 			if (cameraEntity !== undefined) {
+	// 				cameraFrame = cameraEntity.components.getFirstOfType(Birch.World.FrameComponent);
+	// 				if (cameraFrame !== undefined) {
+	// 					this._cameras.set(characterFrame, cameraFrame);
+	// 				}
+	// 			}
+	// 			if (cameraFrame === undefined) {
+	// 				return;
+	// 			}
+	// 		}
+	// 		cameraFrame.position = new Birch.Vector3(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
+	// 	}
+	// }
 
-	private _players: Map<number, {
-		cameraComponent: Birch.World.CameraComponent;
-		characterFrameComponent: FrameComponent;
-	}> = new Map();
+	/** A mapping from character frame components to camera frame components. */
+	private _cameras: Map<Birch.World.FrameComponent, Birch.World.FrameComponent> = new Map();
 }

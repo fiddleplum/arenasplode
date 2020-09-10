@@ -1,6 +1,7 @@
 import { Birch } from '../../birch/src/index';
 import { App } from './app';
 import { SpriteComponent } from './components/sprite_component';
+import { StatusComponent } from './components/status_component';
 
 export class Player {
 	app: App;
@@ -32,6 +33,7 @@ export class Player {
 		this.camera = this.app.world.entities.create('camera ' + index);
 		const cameraCamera = this.camera.components.create(Birch.World.CameraComponent);
 		cameraCamera.near = 0.01;
+		cameraCamera.far = 1000;
 		const cameraFrame = this.camera.components.create(Birch.World.FrameComponent, 'frame');
 		cameraFrame.position = new Birch.Vector3(0, 0, 8.00);
 
@@ -44,6 +46,7 @@ export class Player {
 		characterSprite.url = 'assets/sprites/characters/bob.png';
 		const characterFrame = this.character.components.create(Birch.World.FrameComponent, 'frame');
 		characterFrame.position = new Birch.Vector3(0, 0, 0);
+		this.character.components.create(StatusComponent, 'status');
 	}
 
 	destroy(): void {
