@@ -56,10 +56,14 @@ export class CameraCenteringSystem extends Birch.World.System {
 				newOrientation.mult(rotation, newOrientation);
 			}
 			if (characterStatus.tilted) {
-				newPosition.y -= 8.0;
 				const rotation = new Birch.Quaternion();
 				rotation.setFromEulerAngles(45 * Math.PI / 180, 0, 0);
 				newOrientation.mult(newOrientation, rotation);
+				const offset = new Birch.Vector3();
+				offset.quatAxis(newOrientation, 2);
+				offset.mult(offset, +8.0 * Math.sqrt(2));
+				newPosition.add(newPosition, offset);
+				newPosition.z = cameraFrame.position.z;
 			}
 			cameraFrame.position = newPosition;
 			cameraFrame.orientation = newOrientation;
