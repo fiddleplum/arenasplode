@@ -2,8 +2,7 @@ import { Birch } from '../../../birch/src/index';
 
 export class PlayerControlSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
-		super();
-		this._world = world;
+		super(world);
 		this._axisThreshold = 0.15;
 	}
 
@@ -11,7 +10,7 @@ export class PlayerControlSystem extends Birch.World.System {
 		for (const entry of window.app.players) {
 			const playerIndex = entry.key;
 			const player = entry.value;
-			const controller = this._world.engine.input.getController(playerIndex);
+			const controller = this.world.engine.input.getController(playerIndex);
 			let x = controller.axis(0);
 			let y = controller.axis(1);
 			if (Math.abs(x) < this._axisThreshold) {
@@ -35,6 +34,5 @@ export class PlayerControlSystem extends Birch.World.System {
 		}
 	}
 
-	private _world: Birch.World.World;
 	private _axisThreshold: number;
 }

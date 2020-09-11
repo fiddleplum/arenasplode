@@ -8,8 +8,8 @@ import { StatusComponent } from '../components/status_component';
  * It also gets the player component of the character entity and changes things depending on the mode.
  */
 export class CameraCenteringSystem extends Birch.World.System {
-	constructor() {
-		super();
+	constructor(world: Birch.World.World) {
+		super(world);
 
 		this.monitorComponentTypes([Birch.World.FrameComponent, Birch.World.CameraComponent]);
 

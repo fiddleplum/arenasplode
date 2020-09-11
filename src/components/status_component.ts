@@ -33,8 +33,8 @@ export class StatusComponent extends Birch.World.Component {
 	drunkRotationSpeed = 0;
 
 	private _stuck = false;
-	private _drunk = true;
-	private _tilted = true;
+	private _drunk = false;
+	private _tilted = false;
 
 	private _hitPoints: number = 100;
 }
