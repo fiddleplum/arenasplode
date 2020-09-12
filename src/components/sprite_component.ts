@@ -82,7 +82,7 @@ export class SpriteComponent extends Birch.World.ModelComponent {
 				type: 'float',
 				dimensions: 2
 			}]]);
-			const vertices: number[] = [0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0];
+			const vertices: number[] = [-.5, -.5, 0, 1, .5, -.5, 1, 1, .5, .5, 1, 0, -.5, .5, 0, 0];
 			const indices: number[] = [0, 1, 2, 2, 3, 0];
 			SpriteComponent._mesh.setVertices(0, vertices, false);
 			SpriteComponent._mesh.setIndices(indices, false);

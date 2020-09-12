@@ -53,6 +53,10 @@ export class MapComponent extends Birch.World.ModelComponent {
 		this.engine.renderer.meshes.destroy(this._mesh);
 	}
 
+	get tiles(): Tile[][] {
+		return this._tiles;
+	}
+
 	set size(size: Birch.Vector2) {
 		if (this._mesh === undefined) {
 			return;

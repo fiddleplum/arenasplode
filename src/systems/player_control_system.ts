@@ -25,7 +25,7 @@ export class PlayerControlSystem extends Birch.World.System {
 				if (characterPhysics !== undefined) {
 					const velocity = characterPhysics.velocity;
 					const newVelocity = Birch.Vector2.temp0;
-					newVelocity.set(velocity.x + x, velocity.y - y);
+					newVelocity.set(velocity.x + x * .25, velocity.y - y * .25);
 					characterPhysics.setVelocity(newVelocity);
 				}
 			}
