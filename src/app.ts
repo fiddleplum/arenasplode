@@ -3,6 +3,8 @@ import { MapComponent } from './components/map_component';
 import { Player } from './player';
 import { PlayerControlSystem } from './systems/player_control_system';
 import { CameraCenteringSystem } from './systems/camera_centering_system';
+import { PhysicsComponent } from './components/physics_component';
+import { PhysicsSystem } from './systems/physics_system';
 
 export class App {
 	/** Constructs the app. */
@@ -47,12 +49,13 @@ export class App {
 		this._world = this._birch.worlds.create('main');
 		this._world.systems.create(Birch.World.FrameModelSystem, 'frameModel');
 		this._world.systems.create(PlayerControlSystem, 'playerControl');
+		this._world.systems.create(PhysicsSystem, 'physics');
 		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
 
 		const mapEntity = this._world.entities.create('map');
 		this._map = mapEntity.components.create(MapComponent, 'map');
 		const frame = mapEntity.components.create(Birch.World.FrameComponent, 'frame');
-		frame.position = new Birch.Vector3(0, 0, 0);
+		frame.setPosition(new Birch.Vector3(0, 0, 0));
 	}
 
 	/** Add a player. */

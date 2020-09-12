@@ -1,4 +1,5 @@
 import { Birch } from '../../../birch/src/index';
+import { PhysicsComponent } from '../components/physics_component';
 
 export class PlayerControlSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
@@ -20,15 +21,12 @@ export class PlayerControlSystem extends Birch.World.System {
 				y = 0;
 			}
 			if (x !== 0 || y !== 0) {
-				const characterFrame = player.character.components.getFirstOfType(Birch.World.FrameComponent);
-				if (characterFrame !== undefined) {
-					// This is not optimal. Redo the position getting and setting.
-					const position = characterFrame.position;
-					characterFrame.position = new Birch.Vector3(position.x + x, position.y - y, position.z);
-					// const cameraFrame = player.camera.components.getFirstOfType(Birch.World.FrameComponent);
-					// if (cameraFrame !== undefined) {
-					// 	cameraFrame.position = new Birch.Vector3(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
-					// }
+				const characterPhysics = player.character.components.getFirstOfType(PhysicsComponent);
+				if (characterPhysics !== undefined) {
+					const velocity = characterPhysics.velocity;
+					const newVelocity = Birch.Vector2.temp0;
+					newVelocity.set(velocity.x + x, velocity.y - y);
+					characterPhysics.setVelocity(newVelocity);
 				}
 			}
 		}

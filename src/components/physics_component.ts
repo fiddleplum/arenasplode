@@ -9,7 +9,7 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._radius;
 	}
 
-	set radius(radius) {
+	setRadius(radius: number): void {
 		this._radius = radius;
 	}
 
@@ -17,7 +17,7 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._mass;
 	}
 
-	set mass(mass) {
+	setMass(mass: number): void {
 		this._mass = mass;
 	}
 
@@ -25,7 +25,7 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._velocity;
 	}
 
-	set velocity(velocity) {
+	setVelocity(velocity: Birch.Vector2Readonly): void {
 		this._velocity.copy(velocity);
 	}
 
@@ -33,7 +33,7 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._angularVelocity;
 	}
 
-	set angularVelocity(angularVelocity) {
+	setAngularVelocity(angularVelocity: number): void {
 		this._angularVelocity = angularVelocity;
 	}
 

@@ -15,22 +15,38 @@ export class PhysicsSystem extends Birch.World.System {
 				if (entity1.id > entity2.id) {
 					continue;
 				}
-				const physics1 = entity1.get(PhysicsComponent, 0);
-				const physics2 = entity2.get(PhysicsComponent, 0);
-				const frame1 = entity1.get(Birch.World.FrameComponent, 0);
-				const frame2 = entity2.get(Birch.World.FrameComponent, 0);
+				const physics1 = entity1.get(PhysicsComponent);
+				const physics2 = entity2.get(PhysicsComponent);
+				const frame1 = entity1.get(Birch.World.FrameComponent);
+				const frame2 = entity2.get(Birch.World.FrameComponent);
 				if (frame1 !== undefined && frame2 !== undefined && physics1 !== undefined && physics2 !== undefined) {
-					temp1.sub(frame1.position, frame2.position);
-					const distance = temp1.norm;
+					const offset = Birch.Vector2.temp0;
+					offset.setX(frame1.position.x - frame2.position.x);
+					offset.setY(frame1.position.y - frame2.position.y);
+					const distance = offset.norm;
 					if (distance < physics1.radius + physics2.radius) {
-						temp1.normalize(temp1);
+						offset.normalize(offset);
 					}
 				}
 			}
 		}
+		// Velocities
+		for (const entry of entities) {
+			const entity = entry.key;
+			const physics = entity.get(PhysicsComponent);
+			const frame = entity.get(Birch.World.FrameComponent);
+			if (physics !== undefined && frame !== undefined) {
+				// Apply friction to the velocity.
+				const newVelocity = Birch.Vector2.temp0;
+				newVelocity.mult(physics.velocity, 0.5);
+				physics.setVelocity(newVelocity);
+				// Apply the velocity to the position.
+				const newPosition = Birch.Vector3.temp0;
+				newPosition.copy(frame.position);
+				newPosition.setX(frame.position.x + physics.velocity.x);
+				newPosition.setY(frame.position.y + physics.velocity.y);
+				frame.setPosition(newPosition);
+			}
+		}
 	}
 }
-
-const temp1 = new Birch.Vector3();
-const newPosition1 = new Birch.Vector3();
-const newPosition2 = new Birch.Vector3();
