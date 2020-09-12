@@ -24,6 +24,7 @@ export class CameraCenteringSystem extends Birch.World.System {
 				newPosition.set(characterFrame.position.x, characterFrame.position.y, cameraFrame.position.z);
 			}
 			const newOrientation = Birch.Quaternion.temp0;
+			newOrientation.copy(cameraFrame.orientation);
 			if (characterStatus.drunk) {
 				const rotation = Birch.Quaternion.temp1;
 				characterStatus.drunkRotationSpeed += (Math.random() - 0.5) * 1;

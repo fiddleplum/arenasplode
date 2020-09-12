@@ -1,4 +1,5 @@
 import { Birch } from '../../../birch/src/index';
+import { FrameComponent } from '../../../birch/src/world/internal';
 import { PhysicsComponent } from '../components/physics_component';
 
 export class PlayerControlSystem extends Birch.World.System {
@@ -21,12 +22,17 @@ export class PlayerControlSystem extends Birch.World.System {
 				y = 0;
 			}
 			if (x !== 0 || y !== 0) {
-				const characterPhysics = player.character.components.getFirstOfType(PhysicsComponent);
-				if (characterPhysics !== undefined) {
-					const velocity = characterPhysics.velocity;
+				const physics = player.character.get(PhysicsComponent);
+				const frame = player.character.get(FrameComponent);
+				if (physics !== undefined && frame !== undefined) {
+					const velocity = physics.velocity;
 					const newVelocity = Birch.Vector2.temp0;
 					newVelocity.set(velocity.x + x * .25, velocity.y - y * .25);
-					characterPhysics.setVelocity(newVelocity);
+					physics.setVelocity(newVelocity);
+					const newAngle = Math.atan(-y / x);
+					const newOrientation = Birch.Quaternion.temp0;
+					newOrientation.setFromAxisAngle(Birch.Vector3.UnitZ, newAngle);
+					frame.setOrientation(newOrientation);
 				}
 			}
 		}
