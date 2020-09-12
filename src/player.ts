@@ -1,5 +1,6 @@
 import { Birch } from '../../birch/src/index';
 import { App } from './app';
+import { MapComponent } from './components/map_component';
 import { PhysicsComponent } from './components/physics_component';
 import { SpriteComponent } from './components/sprite_component';
 import { StatusComponent } from './components/status_component';
@@ -46,9 +47,13 @@ export class Player {
 		const characterSprite = this.character.components.create(SpriteComponent, 'sprite');
 		characterSprite.url = 'assets/sprites/characters/bob.png';
 		const characterFrame = this.character.components.create(Birch.World.FrameComponent, 'frame');
-		characterFrame.setPosition(new Birch.Vector3(0, 0, 0));
 		this.character.components.create(StatusComponent, 'status');
 		this.character.components.create(PhysicsComponent, 'physics');
+
+		// Put the character at a random place in the map.
+		const map = this.character.world.entities.get('map')?.get(MapComponent) as MapComponent;
+		characterFrame.setPosition(new Birch.Vector3(1 + Math.random() * (map.size.x - 2), 1 + Math.random() * (map.size.y - 2)));
+
 	}
 
 	destroy(): void {

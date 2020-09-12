@@ -38,12 +38,12 @@ export class MapComponent extends Birch.World.ModelComponent {
 		this.model.uniforms.setUniform('colorTexture', this._texture);
 
 		// Set the size of the map.
-		this.size = new Birch.Vector2(25, 25);
+		this._size = new Birch.Vector2(25, 25);
+		this._updateMap();
 
 		// Create the shader.
 		this.engine.downloader.getJson<Birch.Render.Shader.Options>('assets/shaders/sprite.json').then((json) => {
 			this._shader.setFromOptions(json);
-
 		});
 	}
 
@@ -57,18 +57,33 @@ export class MapComponent extends Birch.World.ModelComponent {
 		return this._tiles;
 	}
 
-	set size(size: Birch.Vector2) {
+	get size(): Birch.Vector2 {
+		return this._size;
+	}
+
+	setSize(size: Birch.Vector2): void {
+		this._size.copy(size);
+		this._updateMap();
+	}
+
+	private _updateMap(): void {
 		if (this._mesh === undefined) {
 			return;
 		}
-		this._size.copy(size);
+		this._size.copy(this._size);
 		this._tiles = [];
 		for (let y = 0; y < this._size.y; y++) {
 			this._tiles.push([]);
 			for (let x = 0; x < this._size.x; x++) {
 				const tile = new Tile();
-				if (Math.random() >= 0.9) {
+				if (x === 0 || y === 0 || x === this._size.x - 1 || y === this._size.y - 1) {
 					tile.type = Tile.Type.Wall;
+				}
+				else if (Math.random() >= 0.8) {
+					tile.type = Tile.Type.Wall;
+				}
+				else {
+					tile.type = Tile.Type.Floor;
 				}
 				this._tiles[y].push(tile);
 			}
