@@ -17,7 +17,9 @@ export class App {
 				this._removePlayer(index);
 			}
 		});
-		// this._addPlayer(0);
+		window.addEventListener('resize', () => {
+			this._adjustViewports();
+		});
 	}
 
 	/** Destructs the app. */
@@ -57,26 +59,7 @@ export class App {
 	private _addPlayer(index: number): void {
 		const player = new Player(this, index);
 		this._players.set(index, player);
-
-		// Adjust the viewports for all players.
-		const numPlayers = this._players.size;
-		const div = document.querySelector('div') as HTMLDivElement;
-		let numColumns = Math.ceil(div.clientWidth / div.clientHeight * Math.sqrt(numPlayers));
-		if (numColumns > numPlayers) {
-			numColumns = numPlayers;
-		}
-		const numRows = Math.ceil(numPlayers / numColumns);
-		let i = 0;
-		for (const playerEntry of this._players) {
-			const viewport = playerEntry.value.viewport;
-			const row = Math.floor(i / numColumns);
-			const col = i % numColumns;
-			viewport.div.style.left = (col / numColumns * 100) + '%';
-			viewport.div.style.top = (row / numRows * 100) + '%';
-			viewport.div.style.width = 'calc(' + (1 / numColumns * 100) + '% - 2px)';
-			viewport.div.style.height = 'calc(' + (1 / numRows * 100) + '% - 2px)';
-			i++;
-		}
+		this._adjustViewports();
 	}
 
 	/** Remove a player. */
@@ -85,6 +68,51 @@ export class App {
 		if (player !== undefined) {
 			player.destroy();
 			this._players.remove(index);
+		}
+	}
+
+	/** Make the viewports the optimal proportions. */
+	private _adjustViewports(): void {
+		const numPlayers = this._players.size;
+		const div = document.querySelector('div') as HTMLDivElement;
+		// Cycle through every arrangement of views and find the most "square" arrangement.
+		let bestCols = 1;
+		let bestScore = 0;
+		for (let cols = 1; cols <= numPlayers; cols++) {
+			const rows = Math.ceil(numPlayers / cols);
+			let score = 1;
+			let aspectOfEachView = (div.clientWidth / cols) / (div.clientHeight / rows);
+			// Favor horizontal views.
+			if (aspectOfEachView > 1) {
+				score *= 1.5;
+			}
+			// Favor square views.
+			if (aspectOfEachView > 1) {
+				aspectOfEachView = 1 / aspectOfEachView;
+			}
+			score *= aspectOfEachView;
+			// Favor views with no empty spaces.
+			if (numPlayers % cols === 0) {
+				score *= 1.5;
+			}
+			// If this score is the best, record the best score and columns.
+			if (score >= bestScore || cols === 1) {
+				bestCols = cols;
+				bestScore = score;
+			}
+		}
+		// Adjust the viewports to work with the best number of columns.
+		const bestRows = Math.ceil(numPlayers / bestCols);
+		let i = 0;
+		for (const playerEntry of this._players) {
+			const viewport = playerEntry.value.viewport;
+			const row = Math.floor(i / bestCols);
+			const col = i % bestCols;
+			viewport.div.style.left = (col / bestCols * 100) + '%';
+			viewport.div.style.top = (row / bestRows * 100) + '%';
+			viewport.div.style.width = 'calc(' + (1 / bestCols * 100) + '% - 2px)';
+			viewport.div.style.height = 'calc(' + (1 / bestRows * 100) + '% - 2px)';
+			i++;
 		}
 	}
 
