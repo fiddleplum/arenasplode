@@ -27,7 +27,7 @@
 		"in vec2 v_uv;",
 		"out vec4 o_color;",
 		"void main() {",
-		"  vec3 color = texture(colorTexture, v_uv).rgb;",
-		"  o_color = vec4(color, 1);",
-		"}"]
+		"  o_color = texture(colorTexture, v_uv);",
+		"}"],
+	"blending": "mix"
 }

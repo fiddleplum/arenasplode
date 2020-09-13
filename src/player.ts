@@ -53,7 +53,6 @@ export class Player {
 		// Put the character at a random place in the map.
 		const map = this.character.world.entities.get('map')?.get(MapComponent) as MapComponent;
 		characterFrame.setPosition(new Birch.Vector3(1 + Math.random() * (map.size.x - 2), 1 + Math.random() * (map.size.y - 2)));
-
 	}
 
 	destroy(): void {
