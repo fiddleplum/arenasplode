@@ -5,6 +5,7 @@ import { PlayerControlSystem } from './systems/player_control_system';
 import { CameraCenteringSystem } from './systems/camera_centering_system';
 import { PhysicsComponent } from './components/physics_component';
 import { PhysicsSystem } from './systems/physics_system';
+import { ItemSystem } from './systems/item_system';
 
 export class App {
 	/** Constructs the app. */
@@ -51,11 +52,16 @@ export class App {
 		this._world.systems.create(PlayerControlSystem, 'playerControl');
 		this._world.systems.create(PhysicsSystem, 'physics');
 		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
+		this._world.systems.create(ItemSystem, 'itemSystem');
 
+		// Create the map.
 		const mapEntity = this._world.entities.create('map');
 		this._map = mapEntity.components.create(MapComponent, 'map');
-		const frame = mapEntity.components.create(Birch.World.FrameComponent, 'frame');
-		frame.setPosition(new Birch.Vector3(0, 0, 0));
+		mapEntity.components.create(Birch.World.FrameComponent, 'frame');
+
+		// Add the items.
+		const itemSystem = this._world.systems.getFirstOfType(ItemSystem) as ItemSystem;
+		itemSystem.initializeItems();
 	}
 
 	/** Add a player. */
