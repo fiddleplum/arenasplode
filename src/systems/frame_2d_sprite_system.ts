@@ -7,32 +7,47 @@ export class Frame2DSpriteSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
 		super(world);
 
-		this.monitorComponentTypes([Frame2DComponent]);
+		this.monitorComponentTypes([Frame2DComponent, SpriteComponent]);
 	}
 
 	/** Process any events. */
 	processEvent(component: Birch.World.Component, event: symbol): void {
 		if (event === Birch.World.Entity.ComponentCreated) {
-			this.subscribeToEvents(component);
-			this._updateModels(component as Frame2DComponent);
+			if (component instanceof Frame2DComponent) {
+				this.subscribeToEvents(component);
+				this._updateSprites(component);
+			}
+			else { // It must be a sprite.
+				const frame2DComponent = component.entity.get(Frame2DComponent);
+				if (frame2DComponent !== undefined) {
+					this._updateSprite(frame2DComponent, component as SpriteComponent);
+				}
+			}
 		}
 		else if (event === Birch.World.Entity.ComponentWillBeDestroyed) {
-			this.unsubscribeFromEvents(component);
+			if (component instanceof Frame2DComponent) {
+				this.unsubscribeFromEvents(component);
+			}
 		}
 		else { // Some event from a frame component.
-			this._updateModels(component as Frame2DComponent);
+			this._updateSprites(component as Frame2DComponent);
 		}
 	}
 
 	/** Updates all of the sprites given a frame2D component. */
-	private _updateModels(frame: Frame2DComponent): void {
+	private _updateSprites(frame: Frame2DComponent): void {
 		const sprites = frame.entity.getAll(SpriteComponent);
 		if (sprites !== undefined) {
 			for (const sprite of sprites) {
-				sprite.uniforms.setUniform('position', frame.position.array);
-				sprite.uniforms.setUniform('rotation', frame.rotation);
-				sprite.uniforms.setUniform('level', frame.level);
+				this._updateSprite(frame, sprite);
 			}
 		}
+	}
+
+	/** Updates a single sprite with the frame2D info. */
+	private _updateSprite(frame2DComponent: Frame2DComponent, spriteComponent: SpriteComponent): void {
+		spriteComponent.uniforms.setUniform('position', frame2DComponent.position.array);
+		spriteComponent.uniforms.setUniform('rotation', frame2DComponent.rotation);
+		spriteComponent.uniforms.setUniform('level', frame2DComponent.level);
 	}
 }
