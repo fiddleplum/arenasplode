@@ -45,14 +45,12 @@ export class PhysicsSystem extends Birch.World.System {
 					const frame1 = entity1.get(Frame2DComponent);
 					const frame2 = entity2.get(Frame2DComponent);
 					if (frame1 !== undefined && frame2 !== undefined && physics1 !== undefined && physics2 !== undefined) {
-						if (physics1.solid && physics2.solid) {
-							const offset = Birch.Vector2.temp0;
-							offset.sub(frame1.position, frame2.position);
-							const distance = offset.norm;
-							if (distance < physics1.radius + physics2.radius) {
-								offset.normalize(offset);
-								colliding = true;
-							}
+						const offset = Birch.Vector2.temp0;
+						offset.sub(frame1.position, frame2.position);
+						const distance = offset.norm;
+						if (distance < physics1.radius + physics2.radius) {
+							offset.normalize(offset);
+							colliding = true;
 						}
 					}
 				}
@@ -90,7 +88,7 @@ export class PhysicsSystem extends Birch.World.System {
 			}
 		}
 		// Collide entities with the map.
-		const map = entities.get('map')!.get(MapComponent) as MapComponent;
+		const map = entities.get('map')!.get(MapComponent)!;
 		for (const entry of entities) {
 			const entity = entry.key;
 			const physics = entity.get(PhysicsComponent);
@@ -112,16 +110,41 @@ export class PhysicsSystem extends Birch.World.System {
 							const closestPoint = Birch.Vector2.temp3;
 							position.set(frame.position.x, frame.position.y);
 							bounds.set(x, y, 1, 1);
-							bounds.closest(closestPoint, position);
-							const diff = Birch.Vector2.temp4;
-							diff.sub(position, closestPoint);
-							const distanceToTile = diff.norm;
-							if (distanceToTile < physics.radius) {
-								diff.normalize(diff);
-								diff.mult(diff, physics.radius - distanceToTile);
-								const newPosition = Birch.Vector2.temp2;
-								newPosition.set(frame.position.x + diff.x, frame.position.y + diff.y);
+							if (bounds.contains(position)) {
+								const diff = Birch.Vector2.temp4;
+								const newPosition = Birch.Vector2.temp5;
+								diff.set(x + 0.5, y + 0.5);
+								diff.sub(position, diff);
+								if (Math.abs(diff.x) > Math.abs(diff.y)) {
+									if (diff.x >= 0) {
+										newPosition.set(x + 1 + physics.radius, position.y);
+									}
+									else {
+										newPosition.set(x - physics.radius, position.y);
+									}
+								}
+								else {
+									if (diff.y >= 0) {
+										newPosition.set(position.x, y + 1 + physics.radius);
+									}
+									else {
+										newPosition.set(position.x, y - physics.radius);
+									}
+								}
 								frame.setPosition(newPosition);
+							}
+							else {
+								bounds.closest(closestPoint, position);
+								const diff = Birch.Vector2.temp4;
+								diff.sub(position, closestPoint);
+								const distanceToTile = diff.norm;
+								if (distanceToTile < physics.radius) {
+									diff.normalize(diff);
+									diff.mult(diff, physics.radius - distanceToTile);
+									const newPosition = Birch.Vector2.temp5;
+									newPosition.set(frame.position.x + diff.x, frame.position.y + diff.y);
+									frame.setPosition(newPosition);
+								}
 							}
 						}
 					}
