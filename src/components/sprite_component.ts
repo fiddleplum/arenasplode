@@ -65,7 +65,7 @@ import { Birch } from 'birch';
 //   its camera frame changed events. Then it would only have to update the stage uniforms when it needs.
 // This would also allow components in one world to connect with systems or components in another world.
 
-export class SpriteComponent extends Birch.World.Component {
+export class SpriteComponent extends Birch.World.ModelComponent {
 	constructor(entity: Birch.World.Entity) {
 		super(entity);
 
@@ -98,14 +98,12 @@ export class SpriteComponent extends Birch.World.Component {
 		// Create the texture.
 		this._texture = this.engine.renderer.textures.create();
 
-		// Create the model.
-		this._model = this.engine.renderer.models.create();
-		this.entity.world.scene.models.add(this._model);
-		this._model.mesh = SpriteComponent._mesh;
-		this._model.shader = SpriteComponent._shader;
+		// Setup the model.
+		this.model.mesh = SpriteComponent._mesh;
+		this.model.shader = SpriteComponent._shader;
 
 		// Set the model's uniforms.
-		this._model.uniforms.setUniformTypes([{
+		this.model.uniforms.setUniformTypes([{
 			name: 'position',
 			type: Birch.Render.Uniforms.Type.vec2
 		}, {
@@ -118,13 +116,11 @@ export class SpriteComponent extends Birch.World.Component {
 			name: 'colorTexture',
 			type: Birch.Render.Uniforms.Type.sampler2D
 		}]);
-		this._model.uniforms.setUniform('colorTexture', this._texture);
+		this.model.uniforms.setUniform('colorTexture', this._texture);
 	}
 
 	destroy(): void {
-		// Destroy the model and texture.
-		this.entity.world.scene.models.remove(this._model);
-		this.engine.renderer.models.destroy(this._model);
+		// Destroy the texture.
 		this.engine.renderer.textures.destroy(this._texture);
 
 		// Remove the mesh and shader counts, destroying them if no longer shared.
@@ -148,15 +144,10 @@ export class SpriteComponent extends Birch.World.Component {
 		}
 	}
 
-	get uniforms(): Birch.Render.Uniforms {
-		return this._model.uniforms;
-	}
-
 	getLoadedPromise(): Promise<[void, void]> {
 		return Promise.all([this._textureLoadedPromise, SpriteComponent._shaderLoadedPromise]);
 	}
 
-	private _model: Birch.Render.Model;
 	private _textureLoadedPromise: Promise<void> = Promise.resolve();
 	private _texture: Birch.Render.Texture;
 	private _url: string = '';
