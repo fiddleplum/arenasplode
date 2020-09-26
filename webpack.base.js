@@ -7,7 +7,10 @@ module.exports = {
 		filename: 'script.js'
 	},
 	resolve: {
-		extensions: ['.ts', '.js']
+		extensions: ['.ts', '.js'],
+		alias: {
+			'birch': path.resolve(__dirname, '../birch/src/index')
+		}
 	},
 	devServer:{
 		contentBase: 'src',
@@ -27,7 +30,7 @@ module.exports = {
 		}]
 	},
 	stats: {
-		assets: false
+		assets: false,
 	},
 	devServer: {
 		stats: 'errors-only'

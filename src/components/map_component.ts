@@ -1,7 +1,7 @@
-import { Birch } from '../../../birch/src/index';
+import { Birch } from 'birch';
 import { Tile } from '../tile';
 
-export class MapComponent extends Birch.World.ModelComponent {
+export class MapComponent extends Birch.World.Component {
 	constructor(entity: Birch.World.Entity) {
 		super(entity);
 
@@ -24,18 +24,29 @@ export class MapComponent extends Birch.World.ModelComponent {
 		this._texture.setSource('assets/sprites/tiles.png');
 
 		// Create the model.
-		this.model.mesh = this._mesh;
-		this.model.shader = this._shader;
+		this._model = this.engine.renderer.models.create();
+		this.entity.world.scene.models.add(this._model);
+		this._model.mesh = this._mesh;
+		this._model.shader = this._shader;
 
 		// Set the model's uniforms.
-		this.model.uniforms.setUniformTypes([{
-			name: 'modelMatrix',
-			type: Birch.Render.Uniforms.Type.mat4x4
+		this._model.uniforms.setUniformTypes([{
+			name: 'position',
+			type: Birch.Render.Uniforms.Type.vec2
+		}, {
+			name: 'rotation',
+			type: Birch.Render.Uniforms.Type.float
+		}, {
+			name: 'level',
+			type: Birch.Render.Uniforms.Type.float
 		}, {
 			name: 'colorTexture',
 			type: Birch.Render.Uniforms.Type.sampler2D
 		}]);
-		this.model.uniforms.setUniform('colorTexture', this._texture);
+		this._model.uniforms.setUniform('position', Birch.Vector2.Zero.array);
+		this._model.uniforms.setUniform('rotation', 0);
+		this._model.uniforms.setUniform('level', 0);
+		this._model.uniforms.setUniform('colorTexture', this._texture);
 
 		// Set the size of the map.
 		this._size = new Birch.Vector2(25, 25);
@@ -48,6 +59,8 @@ export class MapComponent extends Birch.World.ModelComponent {
 	}
 
 	destroy(): void {
+		this.entity.world.scene.models.remove(this._model);
+		this.engine.renderer.models.destroy(this._model);
 		this.engine.renderer.textures.destroy(this._texture);
 		this.engine.renderer.shaders.destroy(this._shader);
 		this.engine.renderer.meshes.destroy(this._mesh);
@@ -127,4 +140,5 @@ export class MapComponent extends Birch.World.ModelComponent {
 	private _mesh: Birch.Render.Mesh;
 	private _shader: Birch.Render.Shader;
 	private _texture: Birch.Render.Texture;
+	private _model: Birch.Render.Model;
 }

@@ -1,4 +1,4 @@
-import { Birch } from '../../../birch/src/index';
+import { Birch } from 'birch';
 
 export class PhysicsComponent extends Birch.World.Component {
 	constructor(entity: Birch.World.Entity) {
@@ -37,8 +37,17 @@ export class PhysicsComponent extends Birch.World.Component {
 		this._angularVelocity = angularVelocity;
 	}
 
+	get solid(): boolean {
+		return this._solid;
+	}
+
+	set solid(solid: boolean) {
+		this._solid = solid;
+	}
+
 	private _radius = .5;
 	private _mass = 1;
 	private _velocity = new Birch.Vector2();
 	private _angularVelocity = 0;
+	private _solid = false;
 }

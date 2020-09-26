@@ -1,4 +1,5 @@
-import { Birch } from '../../../birch/src/index';
+import { Birch } from 'birch';
+import { Frame2DComponent } from '../components/frame_2d_component';
 import { MapComponent } from '../components/map_component';
 import { PhysicsComponent } from '../components/physics_component';
 import { Tile } from '../tile';
@@ -8,54 +9,92 @@ export class PhysicsSystem extends Birch.World.System {
 		super(world);
 	}
 
+	get collidingEntities(): Map<Birch.World.Entity, Set<Birch.World.Entity>> {
+		return this._collidingEntities;
+	}
+
 	update(): void {
 		const entities = this.world.entities;
-		// Velocities
+		// Update positions from velocities.
 		for (const entry of entities) {
 			const entity = entry.key;
 			const physics = entity.get(PhysicsComponent);
-			const frame = entity.get(Birch.World.FrameComponent);
+			const frame = entity.get(Frame2DComponent);
 			if (physics !== undefined && frame !== undefined) {
 				// Apply friction to the velocity.
 				const newVelocity = Birch.Vector2.temp0;
 				newVelocity.mult(physics.velocity, 0.5);
 				physics.setVelocity(newVelocity);
 				// Apply the velocity to the position.
-				const newPosition = Birch.Vector3.temp0;
+				const newPosition = Birch.Vector2.temp1;
 				newPosition.copy(frame.position);
 				newPosition.setX(frame.position.x + physics.velocity.x);
 				newPosition.setY(frame.position.y + physics.velocity.y);
 				frame.setPosition(newPosition);
 			}
 		}
+		// Collide entities with other entities.
 		for (const entry1 of entities) {
 			const entity1 = entry1.key;
 			for (const entry2 of entities) {
+				let colliding: boolean = false;
 				const entity2 = entry2.key;
-				if (entity1.id > entity2.id) {
-					continue;
+				if (entity1.id < entity2.id) {
+					const physics1 = entity1.get(PhysicsComponent);
+					const physics2 = entity2.get(PhysicsComponent);
+					const frame1 = entity1.get(Frame2DComponent);
+					const frame2 = entity2.get(Frame2DComponent);
+					if (frame1 !== undefined && frame2 !== undefined && physics1 !== undefined && physics2 !== undefined) {
+						if (physics1.solid && physics2.solid) {
+							const offset = Birch.Vector2.temp0;
+							offset.sub(frame1.position, frame2.position);
+							const distance = offset.norm;
+							if (distance < physics1.radius + physics2.radius) {
+								offset.normalize(offset);
+								colliding = true;
+							}
+						}
+					}
 				}
-				const physics1 = entity1.get(PhysicsComponent);
-				const physics2 = entity2.get(PhysicsComponent);
-				const frame1 = entity1.get(Birch.World.FrameComponent);
-				const frame2 = entity2.get(Birch.World.FrameComponent);
-				if (frame1 !== undefined && frame2 !== undefined && physics1 !== undefined && physics2 !== undefined) {
-					const offset = Birch.Vector2.temp0;
-					offset.setX(frame1.position.x - frame2.position.x);
-					offset.setY(frame1.position.y - frame2.position.y);
-					const distance = offset.norm;
-					if (distance < physics1.radius + physics2.radius) {
-						offset.normalize(offset);
+				// Add it to or remove it from the colliding entities list.
+				if (colliding) {
+					let set1 = this._collidingEntities.get(entity1);
+					if (set1 === undefined) {
+						set1 = new Set();
+						this._collidingEntities.set(entity1, set1);
+					}
+					set1.add(entity2);
+					let set2 = this._collidingEntities.get(entity2);
+					if (set2 === undefined) {
+						set2 = new Set();
+						this._collidingEntities.set(entity2, set2);
+					}
+					set2.add(entity1);
+				}
+				else {
+					const set1 = this._collidingEntities.get(entity1);
+					const set2 = this._collidingEntities.get(entity2);
+					if (set1 !== undefined) {
+						set1.delete(entity2);
+						if (set1.size === 0) {
+							this._collidingEntities.delete(entity1);
+						}
+					}
+					if (set2 !== undefined) {
+						set2.delete(entity1);
+						if (set2.size === 0) {
+							this._collidingEntities.delete(entity2);
+						}
 					}
 				}
 			}
 		}
-		// Collide with the map.
-		const map = (entities.get('map') as Birch.World.Entity).get(MapComponent) as MapComponent;
+		// Collide entities with the map.
+		const map = entities.get('map')!.get(MapComponent) as MapComponent;
 		for (const entry of entities) {
 			const entity = entry.key;
 			const physics = entity.get(PhysicsComponent);
-			const frame = entity.get(Birch.World.FrameComponent);
+			const frame = entity.get(Frame2DComponent);
 			if (physics !== undefined && frame !== undefined) {
 				// Get the integer bounds of the entity.
 				const min = Birch.Vector2.temp0;
@@ -80,8 +119,8 @@ export class PhysicsSystem extends Birch.World.System {
 							if (distanceToTile < physics.radius) {
 								diff.normalize(diff);
 								diff.mult(diff, physics.radius - distanceToTile);
-								const newPosition = Birch.Vector3.temp0;
-								newPosition.set(frame.position.x + diff.x, frame.position.y + diff.y, frame.position.z);
+								const newPosition = Birch.Vector2.temp2;
+								newPosition.set(frame.position.x + diff.x, frame.position.y + diff.y);
 								frame.setPosition(newPosition);
 							}
 						}
@@ -90,4 +129,6 @@ export class PhysicsSystem extends Birch.World.System {
 			}
 		}
 	}
+
+	private _collidingEntities: Map<Birch.World.Entity, Set<Birch.World.Entity>> = new Map();
 }

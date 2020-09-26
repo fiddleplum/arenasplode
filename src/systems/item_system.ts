@@ -1,4 +1,5 @@
-import { Birch } from '../../../birch/src/index';
+import { Birch } from 'birch';
+import { Frame2DComponent } from '../components/frame_2d_component';
 import { MapComponent } from '../components/map_component';
 import { PhysicsComponent } from '../components/physics_component';
 import { SpriteComponent } from '../components/sprite_component';
@@ -24,8 +25,9 @@ export class ItemSystem extends Birch.World.System {
 			// Choose the item type.
 			const itemTypeIndex = Math.floor(Math.random() * this._itemTypes.length);
 			// Create the frame.
-			const frame = itemEntity.components.create(Birch.World.FrameComponent, 'frame');
-			frame.setPosition(new Birch.Vector3(1 + Math.random() * (mapSize.x - 2), 1 + Math.random() * (mapSize.y - 2), 0));
+			const frame = itemEntity.components.create(Frame2DComponent, 'frame');
+			frame.setPosition(new Birch.Vector2(1 + Math.random() * (mapSize.x - 2), 1 + Math.random() * (mapSize.y - 2)));
+			frame.setLevel(0.1);
 			// Create the physics.
 			itemEntity.components.create(PhysicsComponent, 'physics');
 			this._items.push(itemEntity);

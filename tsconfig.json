@@ -8,7 +8,11 @@
 		"removeComments": true,
 		"preserveConstEnums": true,
 		"sourceMap": true,
-		"types": []
+		"types": [],
+		"baseUrl": "./src/",
+		"paths": {
+			"birch": [ "../../birch/src/index" ]
+		}
 	},
 	"include": [
 		"src/**/*"

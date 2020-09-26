@@ -1,4 +1,4 @@
-import { Birch } from '../../../birch/src/index';
+import { Birch } from 'birch';
 
 // Now I have a frame component sending events to a frame-model system,
 // and the frame-model system updating the model modelMatrix uniform.
@@ -65,11 +65,11 @@ import { Birch } from '../../../birch/src/index';
 //   its camera frame changed events. Then it would only have to update the stage uniforms when it needs.
 // This would also allow components in one world to connect with systems or components in another world.
 
-export class SpriteComponent extends Birch.World.ModelComponent {
+export class SpriteComponent extends Birch.World.Component {
 	constructor(entity: Birch.World.Entity) {
 		super(entity);
 
-		// If this is the first sprite,
+		// If this is the first sprite, create the shader and mesh, which are shared by all.
 		if (SpriteComponent._numSprites === 0) {
 			// Create the mesh.
 			SpriteComponent._mesh = this.engine.renderer.meshes.create();
@@ -94,24 +94,40 @@ export class SpriteComponent extends Birch.World.ModelComponent {
 			});
 		}
 		SpriteComponent._numSprites += 1;
+
 		// Create the texture.
 		this._texture = this.engine.renderer.textures.create();
+
 		// Create the model.
-		this.model.mesh = SpriteComponent._mesh;
-		this.model.shader = SpriteComponent._shader;
+		this._model = this.engine.renderer.models.create();
+		this.entity.world.scene.models.add(this._model);
+		this._model.mesh = SpriteComponent._mesh;
+		this._model.shader = SpriteComponent._shader;
+
 		// Set the model's uniforms.
-		this.model.uniforms.setUniformTypes([{
-			name: 'modelMatrix',
-			type: Birch.Render.Uniforms.Type.mat4x4
+		this._model.uniforms.setUniformTypes([{
+			name: 'position',
+			type: Birch.Render.Uniforms.Type.vec2
+		}, {
+			name: 'rotation',
+			type: Birch.Render.Uniforms.Type.float
+		}, {
+			name: 'level',
+			type: Birch.Render.Uniforms.Type.float
 		}, {
 			name: 'colorTexture',
 			type: Birch.Render.Uniforms.Type.sampler2D
 		}]);
-		this.model.uniforms.setUniform('colorTexture', this._texture);
+		this._model.uniforms.setUniform('colorTexture', this._texture);
 	}
 
 	destroy(): void {
+		// Destroy the model and texture.
+		this.entity.world.scene.models.remove(this._model);
+		this.engine.renderer.models.destroy(this._model);
 		this.engine.renderer.textures.destroy(this._texture);
+
+		// Remove the mesh and shader counts, destroying them if no longer shared.
 		SpriteComponent._numSprites -= 1;
 		if (SpriteComponent._numSprites === 0) {
 			this.engine.renderer.shaders.destroy(SpriteComponent._shader);
@@ -132,10 +148,15 @@ export class SpriteComponent extends Birch.World.ModelComponent {
 		}
 	}
 
+	get uniforms(): Birch.Render.Uniforms {
+		return this._model.uniforms;
+	}
+
 	getLoadedPromise(): Promise<[void, void]> {
 		return Promise.all([this._textureLoadedPromise, SpriteComponent._shaderLoadedPromise]);
 	}
 
+	private _model: Birch.Render.Model;
 	private _textureLoadedPromise: Promise<void> = Promise.resolve();
 	private _texture: Birch.Render.Texture;
 	private _url: string = '';

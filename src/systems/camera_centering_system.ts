@@ -1,21 +1,43 @@
-import { Birch } from '../../../birch/src/index';
-import { StatusComponent } from '../components/status_component';
+import { Birch } from 'birch';
+import { Frame2DComponent } from '../components/frame_2d_component';
+import { PlayerComponent } from '../components/player_component';
 
 /** This system keeps the camera centered on the character and handles camera statuses. */
 export class CameraCenteringSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
 		super(world);
 
-		this.monitorComponentTypes([Birch.World.FrameComponent, Birch.World.CameraComponent]);
+		this.monitorComponentTypes([Frame2DComponent, PlayerComponent]);
+	}
+
+	/** Process any events. */
+	processEvent(component: Birch.World.Component, event: symbol): void {
+		const entity = component.entity;
+		if (event === Birch.World.Entity.ComponentCreated) {
+			if (entity.has(Frame2DComponent) && entity.has(PlayerComponent)) {
+				this._characters.add(entity);
+			}
+		}
+		else if (event === Birch.World.Entity.ComponentWillBeDestroyed) {
+			if (!entity.has(Frame2DComponent) || !entity.has(PlayerComponent)) {
+				this._characters.remove(entity);
+			}
+		}
 	}
 
 	update(): void {
-		const players = window.app.players;
-		for (const entry of players) {
-			const player = entry.value;
-			const characterFrame = player.character.get(Birch.World.FrameComponent, 0) as Birch.World.FrameComponent;
-			const characterStatus = player.character.get(StatusComponent, 0) as StatusComponent;
-			const cameraFrame = player.camera.get(Birch.World.FrameComponent, 0) as Birch.World.FrameComponent;
+		for (const character of this._characters) {
+			if (character.name === undefined) {
+				return;
+			}
+			// Get the corresponding camera.
+			const camera = character.world.entities.get('camera ' + character.name.substring('character '.length));
+			if (camera === undefined) {
+				return;
+			}
+			const characterFrame = character.get(Frame2DComponent)!;
+			const characterStatus = character.get(PlayerComponent)!;
+			const cameraFrame = camera.get(Birch.World.FrameComponent)!;
 			const newPosition = Birch.Vector3.temp0;
 			if (characterStatus.stuck) {
 				newPosition.copy(cameraFrame.position);
@@ -47,4 +69,6 @@ export class CameraCenteringSystem extends Birch.World.System {
 			cameraFrame.setOrientation(newOrientation);
 		}
 	}
+
+	private _characters: Birch.FastOrderedSet<Birch.World.Entity> = new Birch.FastOrderedSet();
 }

@@ -1,8 +1,8 @@
 {
 	"name": "@fiddleplum/arenasplode",
 	"version": "0.0.0",
-	"description": "A visualization engine for the web.",
-	"private": false,
+	"description": "Arenasplode!",
+	"private": true,
 	"scripts": {
 		"setup": "yarn install; mkdir -p dist; cp src/config.example.js dist/config.js",
 		"update": "yarn install --no-default-rc",
