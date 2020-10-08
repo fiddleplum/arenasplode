@@ -26,6 +26,7 @@
 		"@typescript-eslint/eslint-plugin": "latest",
 		"raw-loader": "latest",
 		"ts-loader": "latest",
+		"tsconfig-paths-webpack-plugin": "latest",
 		"typescript": "latest",
 		"webpack": "latest",
 		"webpack-cli": "latest",

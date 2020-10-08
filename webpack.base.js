@@ -1,4 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const TSConfigPathsWebpackPlugin = require('tsconfig-paths-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -8,9 +9,7 @@ module.exports = {
 	},
 	resolve: {
 		extensions: ['.ts', '.js'],
-		alias: {
-			'birch': path.resolve(__dirname, '../birch/src/index')
-		}
+		plugins: [new TSConfigPathsWebpackPlugin()]
 	},
 	devServer:{
 		contentBase: 'src',
