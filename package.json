@@ -15,7 +15,7 @@
 		"url": "git+https://github.com/fiddleplum/arenasplode.git"
 	},
 	"author": "Stephen Hurley",
-	"license": "MIT",
+	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/fiddleplum/arenasplode/issues"
 	},
