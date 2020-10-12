@@ -1,9 +1,9 @@
 import { Birch } from 'birch';
-import { Frame2DComponent } from '../components/frame_2d_component';
-import { PhysicsComponent } from '../components/physics_component';
-import { PlayerComponent } from '../components/player_component';
-import { WeaponComponent } from '../components/weapon_component';
-import { PhysicsSystem } from './physics_system';
+import { Frame2DComponent } from 'components/frame_2d_component';
+import { HoldableComponent } from 'components/holdable_component';
+import { PhysicsComponent } from 'components/physics_component';
+import { PlayerComponent } from 'components/player_component';
+import { CollisionSystem } from './collision_system';
 
 export class PlayerControlSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
@@ -80,7 +80,7 @@ export class PlayerControlSystem extends Birch.World.System {
 				const newVelocity = Birch.Vector2.temp0;
 				newVelocity.set(velocity.x + x * .25, velocity.y - y * .25);
 				physics.setVelocity(newVelocity);
-				const newAngle = Math.atan(-y / x);
+				const newAngle = Math.atan2(-y, x);
 				frame.setRotation(newAngle);
 			}
 		}
@@ -98,10 +98,10 @@ export class PlayerControlSystem extends Birch.World.System {
 			const playerComponent = character.get(PlayerComponent)!;
 			const physicsComponent = character.get(PhysicsComponent)!;
 			const frameComponent = character.get(Frame2DComponent)!;
-			const physicsSystem = this.world.getSystem(PhysicsSystem)!;
+			const collisionSystem = this.world.getSystem(CollisionSystem)!;
 
 			// Get the nearest entity colliding with the character.
-			const collidingEntities = physicsSystem.collidingEntities.get(character);
+			const collidingEntities = collisionSystem.collidingEntities.get(character);
 			if (collidingEntities === undefined) {
 				return; // Nothing nearby, so return.
 			}
@@ -116,26 +116,27 @@ export class PlayerControlSystem extends Birch.World.System {
 				}
 			}
 			if (nearestCollidingEntity !== undefined) {
-				// See if it's a weapon.
-				const weapon = nearestCollidingEntity.get(WeaponComponent);
-				if (weapon !== undefined) {
-					if (weapon.heldByEntity === undefined) {
-						// If the character had a weapon, toss it.
-						if (playerComponent.weaponHeld !== undefined) {
-							const oldWeapon = playerComponent.weaponHeld;
-							playerComponent.setWeaponHeld(undefined);
-							oldWeapon.setHeldByEntity(undefined);
-							// Do the toss physics.
-							const oldWeaponPhysics = playerComponent.entity.get(PhysicsComponent)!;
-							const oldWeaponVelocity = Birch.Vector2.temp0;
-							const forward = Birch.Vector2.temp1;
-							forward.rot(Birch.Vector2.UnitX, frameComponent.rotation);
-							oldWeaponVelocity.addMult(physicsComponent.velocity, 1, forward, 0.1);
-							oldWeaponPhysics.setVelocity(oldWeaponVelocity);
-						}
-						playerComponent.setWeaponHeld(weapon);
-						weapon.setHeldByEntity(character);
+				const holdableComponent = nearestCollidingEntity.get(HoldableComponent);
+				// See if it's an holdable item and not held by someone else.
+				if (holdableComponent !== undefined && holdableComponent.heldBy === undefined) {
+					// If the character had a holdable item, toss it.
+					if (playerComponent.holding !== undefined) {
+						const heldItem = playerComponent.holding;
+						playerComponent.setHolding(undefined);
+						// Set the item as not held.
+						const oldItemHoldable = heldItem.get(HoldableComponent)!;
+						oldItemHoldable.heldBy = undefined;
+						// Add the physics component and do the toss physics.
+						const oldItemPhysics = heldItem.get(PhysicsComponent)!;
+						const oldItemVelocity = Birch.Vector2.temp0;
+						const forward = Birch.Vector2.temp1;
+						forward.rot(Birch.Vector2.UnitX, frameComponent.rotation);
+						oldItemVelocity.addMult(physicsComponent.velocity, 1, forward, 1);
+						oldItemPhysics.setVelocity(oldItemVelocity);
+						oldItemPhysics.boundEntities.remove(character);
 					}
+					playerComponent.setHolding(nearestCollidingEntity);
+					holdableComponent.heldBy = playerComponent;
 				}
 				// See if it's a powerup.
 				// const powerup = nearestCollidingEntity.get(PowerupComponent);

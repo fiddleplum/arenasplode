@@ -23,7 +23,7 @@ export class Frame2DComponent extends Birch.World.Component {
 	/** Sets the rotation. */
 	setRotation(rotation: number): void {
 		if (this._rotation !== rotation) {
-			this._rotation = rotation;
+			this._rotation = Birch.Num.wrap(rotation, -Math.PI, Math.PI);
 			this.sendEvent(Frame2DComponent.FrameChanged);
 		}
 	}

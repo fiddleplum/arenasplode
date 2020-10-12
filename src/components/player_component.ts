@@ -1,5 +1,4 @@
 import { Birch } from 'birch';
-import { WeaponComponent } from './weapon_component';
 
 export class PlayerComponent extends Birch.World.Component {
 	constructor(entity: Birch.World.Entity) {
@@ -38,12 +37,12 @@ export class PlayerComponent extends Birch.World.Component {
 		this._tilted = tilted;
 	}
 
-	get weaponHeld(): WeaponComponent | undefined {
-		return this._weaponHeld;
+	get holding(): Birch.World.Entity | undefined {
+		return this._holding;
 	}
 
-	setWeaponHeld(weaponHeld: WeaponComponent | undefined): void {
-		this._weaponHeld = weaponHeld;
+	setHolding(entity: Birch.World.Entity | undefined): void {
+		this._holding = entity;
 	}
 
 	drunkRotation = 0;
@@ -53,7 +52,7 @@ export class PlayerComponent extends Birch.World.Component {
 	private _stuck = false;
 	private _drunk = false;
 	private _tilted = false;
-	private _weaponHeld: WeaponComponent | undefined = undefined;
+	private _holding: Birch.World.Entity | undefined = undefined;
 
 	private _hitPoints: number = 100;
 }

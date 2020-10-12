@@ -41,8 +41,12 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._solid;
 	}
 
-	set solid(solid: boolean) {
+	setSolid(solid: boolean): void {
 		this._solid = solid;
+	}
+
+	get boundEntities(): Birch.FastMap<Birch.World.Entity, BindParams> {
+		return this._boundEntities;
 	}
 
 	private _radius = .5;
@@ -50,4 +54,11 @@ export class PhysicsComponent extends Birch.World.Component {
 	private _velocity = new Birch.Vector2();
 	private _angularVelocity = 0;
 	private _solid = false;
+	private _boundEntities: Birch.FastMap<Birch.World.Entity, BindParams> = new Birch.FastMap();
+}
+
+export interface BindParams {
+	springCoefficient: number,
+	offset: Birch.Vector2,
+	usesRotation: boolean
 }

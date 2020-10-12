@@ -1,6 +1,6 @@
 import { Birch } from 'birch';
-import { Frame2DComponent } from '../components/frame_2d_component';
-import { PlayerComponent } from '../components/player_component';
+import { Frame2DComponent } from 'components/frame_2d_component';
+import { PlayerComponent } from 'components/player_component';
 
 /** This system keeps the camera centered on the character and handles camera statuses. */
 export class CameraCenteringSystem extends Birch.World.System {

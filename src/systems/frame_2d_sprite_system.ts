@@ -1,6 +1,6 @@
 import { Birch } from 'birch';
-import { Frame2DComponent } from '../components/frame_2d_component';
-import { SpriteComponent } from '../components/sprite_component';
+import { Frame2DComponent } from 'components/frame_2d_component';
+import { SpriteComponent } from 'components/sprite_component';
 
 export class Frame2DSpriteSystem extends Birch.World.System {
 	/** Constructs the frame-model system. */
@@ -12,25 +12,25 @@ export class Frame2DSpriteSystem extends Birch.World.System {
 
 	/** Process any events. */
 	processEvent(component: Birch.World.Component, event: symbol): void {
-		if (event === Birch.World.Entity.ComponentCreated) {
-			if (component instanceof Frame2DComponent) {
+		if (component instanceof Frame2DComponent) {
+			if (event === Birch.World.Entity.ComponentCreated) {
 				this.subscribeToEvents(component);
 				this._updateSprites(component);
 			}
-			else { // It must be a sprite.
-				const frame2DComponent = component.entity.get(Frame2DComponent);
-				if (frame2DComponent !== undefined) {
-					this._updateSprite(frame2DComponent, component as SpriteComponent);
-				}
-			}
-		}
-		else if (event === Birch.World.Entity.ComponentWillBeDestroyed) {
-			if (component instanceof Frame2DComponent) {
+			else if (event === Birch.World.Entity.ComponentWillBeDestroyed) {
 				this.unsubscribeFromEvents(component);
 			}
+			else {
+				this._updateSprites(component);
+			}
 		}
-		else { // Some event from a frame component.
-			this._updateSprites(component as Frame2DComponent);
+		else if (component instanceof SpriteComponent) {
+			if (event === Birch.World.Entity.ComponentCreated) {
+				const frameComponent = component.entity.get(Frame2DComponent);
+				if (frameComponent !== undefined) {
+					this._updateSprite(frameComponent, component);
+				}
+			}
 		}
 	}
 

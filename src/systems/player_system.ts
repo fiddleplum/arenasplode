@@ -1,9 +1,10 @@
 import { Birch } from 'birch';
-import { PhysicsComponent } from '../components/physics_component';
-import { SpriteComponent } from '../components/sprite_component';
-import { PlayerComponent } from '../components/player_component';
-import { MapComponent } from '../components/map_component';
-import { Frame2DComponent } from '../components/frame_2d_component';
+import { PhysicsComponent } from 'components/physics_component';
+import { SpriteComponent } from 'components/sprite_component';
+import { PlayerComponent } from 'components/player_component';
+import { MapComponent } from 'components/map_component';
+import { Frame2DComponent } from 'components/frame_2d_component';
+import { TypeComponent } from 'components/type_component';
 
 /** The system in charge of adding and removing players. */
 export class PlayerSystem extends Birch.World.System {
@@ -65,11 +66,14 @@ export class PlayerSystem extends Birch.World.System {
 		// Create the character entity.
 		const character = this.world.entities.create('character ' + index);
 
-		// Create the character sprite component.
+		// Create the type component.
+		character.components.create(TypeComponent, 'type').type = TypeComponent.Character;
+
+		// Create the sprite component.
 		const characterSprite = character.components.create(SpriteComponent, 'sprite');
 		characterSprite.url = 'assets/sprites/characters/bob.png';
 
-		// Create the character frame component.
+		// Create the frame component.
 		const characterFrame = character.components.create(Frame2DComponent, 'frame');
 		// Put the character at a random place in the map.
 		const map = character.world.entities.get('map')?.get(MapComponent) as MapComponent;

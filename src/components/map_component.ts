@@ -1,5 +1,5 @@
 import { Birch } from 'birch';
-import { Tile } from '../tile';
+import { Tile } from 'tile';
 
 export class MapComponent extends Birch.World.ModelComponent {
 	constructor(entity: Birch.World.Entity) {

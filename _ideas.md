@@ -1,3 +1,21 @@
+# Original Arenasplode Game Loop
+
+object->update: Update game logic. (updates velocities)
+	Do chain wand springs.
+
+doPhysics: Apply friction and update positions.
+
+Collide with other entities.
+	if solid, bounce off each other
+	call onTouch functions
+
+Collide with map.
+	call onOverTile functions
+	move away from walls
+
+prerender: Move held objects to characters.
+	chain and character (holding) have prerender updates
+
 # Ideas
 
 Add mass, momentum, and angular momentum.

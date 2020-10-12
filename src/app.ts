@@ -1,11 +1,13 @@
 import { Birch } from 'birch';
-import { MapComponent } from './components/map_component';
-import { PlayerControlSystem } from './systems/player_control_system';
-import { CameraCenteringSystem } from './systems/camera_centering_system';
-import { PhysicsSystem } from './systems/physics_system';
-import { ItemSystem } from './systems/item_system';
-import { PlayerSystem } from './systems/player_system';
-import { Frame2DSpriteSystem } from './systems/frame_2d_sprite_system';
+import { MapComponent } from 'components/map_component';
+import { PlayerControlSystem } from 'systems/player_control_system';
+import { CameraCenteringSystem } from 'systems/camera_centering_system';
+import { PhysicsSystem } from 'systems/physics_system';
+import { ItemSystem } from 'systems/item_system';
+import { PrerenderSystem } from 'systems/prerender_system';
+import { PlayerSystem } from 'systems/player_system';
+import { Frame2DSpriteSystem } from 'systems/frame_2d_sprite_system';
+import { CollisionSystem } from 'systems/collision_system';
 
 export class App {
 	/** Constructs the app. */
@@ -35,9 +37,11 @@ export class App {
 		this._world.systems.create(Frame2DSpriteSystem, 'frame2DSprite');
 		this._world.systems.create(PlayerSystem, 'player');
 		this._world.systems.create(PlayerControlSystem, 'playerControl');
-		this._world.systems.create(PhysicsSystem, 'physics');
-		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
 		this._world.systems.create(ItemSystem, 'itemSystem');
+		this._world.systems.create(PhysicsSystem, 'physics');
+		this._world.systems.create(CollisionSystem, 'collision');
+		this._world.systems.create(PrerenderSystem, 'prerender');
+		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
 
 		// Create the map.
 		const mapEntity = this._world.entities.create('map');
