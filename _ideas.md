@@ -1,13 +1,18 @@
 # Original Arenasplode Game Loop
 
 object->update: Update game logic. (updates velocities)
-	Do chain wand springs.
+
+Procress inputs
+
+	Do chain wand springs, only modify velocities.
+
+Call onTouchEntity and onTouchTile functions
+	They only modify velocities.
 
 doPhysics: Apply friction and update positions.
 
 Collide with other entities.
 	if solid, bounce off each other
-	call onTouch functions
 
 Collide with map.
 	call onOverTile functions

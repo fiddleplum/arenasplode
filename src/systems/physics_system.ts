@@ -2,6 +2,7 @@ import { Birch } from 'birch';
 import { Frame2DComponent } from 'components/frame_2d_component';
 import { PhysicsComponent } from 'components/physics_component';
 
+/** Updates positions from velocities. */
 export class PhysicsSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
 		super(world);
@@ -34,16 +35,21 @@ export class PhysicsSystem extends Birch.World.System {
 						newAngularVelocity += bindParams.springCoefficient * angleDiff;
 					}
 				}
+
 				// Apply friction.
 				newVelocity.mult(newVelocity, 0.5);
 				newAngularVelocity *= 0.5;
+
 				// Set the new velocity and angular velocity.
 				physics.setVelocity(newVelocity);
 				physics.setAngularVelocity(newAngularVelocity);
+
 				// Apply the velocity to the position.
 				const newPosition = Birch.Vector2.temp1;
 				newPosition.add(frame.position, physics.velocity);
 				frame.setPosition(newPosition);
+
+				// Apply the angular velocity to the rotation.
 				frame.setRotation(frame.rotation + physics.angularVelocity);
 			}
 		}

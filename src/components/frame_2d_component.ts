@@ -28,7 +28,7 @@ export class Frame2DComponent extends Birch.World.Component {
 		}
 	}
 
-	/** Gets the leve. */
+	/** Gets the level. */
 	get level(): number {
 		return this._level;
 	}
@@ -41,6 +41,19 @@ export class Frame2DComponent extends Birch.World.Component {
 		}
 	}
 
+	/** Gets the radius. */
+	get radius(): number {
+		return this._radius;
+	}
+
+	/** Sets the radius. */
+	setRadius(radius: number): void {
+		if (this._radius !== radius) {
+			this._radius = radius;
+			this.sendEvent(Frame2DComponent.FrameChanged);
+		}
+	}
+
 	/** The position. */
 	private _position = new Birch.Vector2();
 
@@ -49,6 +62,9 @@ export class Frame2DComponent extends Birch.World.Component {
 
 	/** The level. Higher means in front. */
 	private _level = 0;
+
+	/** The radius. */
+	private _radius = .5;
 
 	/** The event sent when the frame has changed. */
 	static FrameChanged = Symbol('FrameChanged');

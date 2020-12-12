@@ -7,7 +7,7 @@ import { ItemSystem } from 'systems/item_system';
 import { PrerenderSystem } from 'systems/prerender_system';
 import { PlayerSystem } from 'systems/player_system';
 import { Frame2DSpriteSystem } from 'systems/frame_2d_sprite_system';
-import { CollisionSystem } from 'systems/collision_system';
+import { OverlapSystem } from 'systems/overlap_system';
 
 export class App {
 	/** Constructs the app. */
@@ -34,13 +34,13 @@ export class App {
 	private _initializeWorld(): void {
 		// Create the world and systems.
 		this._world = this._birch.worlds.create('main');
-		this._world.systems.create(Frame2DSpriteSystem, 'frame2DSprite');
 		this._world.systems.create(PlayerSystem, 'player');
 		this._world.systems.create(PlayerControlSystem, 'playerControl');
 		this._world.systems.create(ItemSystem, 'itemSystem');
 		this._world.systems.create(PhysicsSystem, 'physics');
-		this._world.systems.create(CollisionSystem, 'collision');
 		this._world.systems.create(PrerenderSystem, 'prerender');
+		this._world.systems.create(OverlapSystem, 'overlap');
+		this._world.systems.create(Frame2DSpriteSystem, 'frame2DSprite');
 		this._world.systems.create(CameraCenteringSystem, 'cameraCentering');
 
 		// Create the map.

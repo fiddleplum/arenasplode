@@ -5,14 +5,6 @@ export class PhysicsComponent extends Birch.World.Component {
 		super(entity);
 	}
 
-	get radius(): number {
-		return this._radius;
-	}
-
-	setRadius(radius: number): void {
-		this._radius = radius;
-	}
-
 	get mass(): number {
 		return this._mass;
 	}
@@ -49,7 +41,6 @@ export class PhysicsComponent extends Birch.World.Component {
 		return this._boundEntities;
 	}
 
-	private _radius = .5;
 	private _mass = 1;
 	private _velocity = new Birch.Vector2();
 	private _angularVelocity = 0;

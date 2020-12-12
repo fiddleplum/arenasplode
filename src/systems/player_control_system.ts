@@ -3,7 +3,7 @@ import { Frame2DComponent } from 'components/frame_2d_component';
 import { HoldableComponent } from 'components/holdable_component';
 import { PhysicsComponent } from 'components/physics_component';
 import { PlayerComponent } from 'components/player_component';
-import { CollisionSystem } from './collision_system';
+import { SwordComponent } from 'components/sword_component';
 
 export class PlayerControlSystem extends Birch.World.System {
 	constructor(world: Birch.World.World) {
@@ -87,62 +87,76 @@ export class PlayerControlSystem extends Birch.World.System {
 	}
 
 	private _onButtonChanged(controllerIndex: number, buttonIndex: number, newValue: number): void {
-		// Pickup and drop weapons.
+		// Get the character associated with the controller.
+		const character = this._characters.get(controllerIndex);
+		if (character === undefined) {
+			return;
+		}
+		const playerComponent = character.get(PlayerComponent)!;
+		// User pressed the button activating the held weapon.
 		if (buttonIndex === 0 && newValue === 1) {
-			// const player = character.get(PlayerComponent)!;
-			// const physicsComponent = character.get(PhysicsComponent)!;
-			const character = this._characters.get(controllerIndex);
-			if (character === undefined) {
+			const heldItem = playerComponent.holding;
+			// If the character isn't holding anything, do nothing.
+			if (heldItem === undefined) {
 				return;
 			}
-			const playerComponent = character.get(PlayerComponent)!;
+			// If the user is holding a sword, change the direction of swinging.
+			const swordComponent = heldItem.get(SwordComponent);
+			if (swordComponent !== undefined) {
+				console.log('swinging');
+				swordComponent.swingDir *= -1;
+			}
+		}
+		// User pressed the button for picking up weapons.
+		else if (buttonIndex === 1 && newValue === 1) {
 			const physicsComponent = character.get(PhysicsComponent)!;
 			const frameComponent = character.get(Frame2DComponent)!;
-			const collisionSystem = this.world.getSystem(CollisionSystem)!;
 
-			// Get the nearest entity colliding with the character.
-			const collidingEntities = collisionSystem.collidingEntities.get(character);
-			if (collidingEntities === undefined) {
-				return; // Nothing nearby, so return.
-			}
-			let nearestCollidingEntity: Birch.World.Entity | undefined = undefined;
-			let nearestCollidingDistance = Number.POSITIVE_INFINITY;
-			for (const collidingEntity of collidingEntities) {
-				const entityFrame = collidingEntity.get(Frame2DComponent)!;
-				const distance = entityFrame.position.distance(frameComponent.position);
-				if (distance < nearestCollidingDistance) {
-					nearestCollidingDistance = distance;
-					nearestCollidingEntity = collidingEntity;
-				}
-			}
-			if (nearestCollidingEntity !== undefined) {
-				const holdableComponent = nearestCollidingEntity.get(HoldableComponent);
-				// See if it's an holdable item and not held by someone else.
-				if (holdableComponent !== undefined && holdableComponent.heldBy === undefined) {
-					// If the character had a holdable item, toss it.
-					if (playerComponent.holding !== undefined) {
-						const heldItem = playerComponent.holding;
-						playerComponent.setHolding(undefined);
-						// Set the item as not held.
-						const oldItemHoldable = heldItem.get(HoldableComponent)!;
-						oldItemHoldable.heldBy = undefined;
-						// Add the physics component and do the toss physics.
-						const oldItemPhysics = heldItem.get(PhysicsComponent)!;
-						const oldItemVelocity = Birch.Vector2.temp0;
-						const forward = Birch.Vector2.temp1;
-						forward.rot(Birch.Vector2.UnitX, frameComponent.rotation);
-						oldItemVelocity.addMult(physicsComponent.velocity, 1, forward, 1);
-						oldItemPhysics.setVelocity(oldItemVelocity);
-						oldItemPhysics.boundEntities.remove(character);
-					}
-					playerComponent.setHolding(nearestCollidingEntity);
-					holdableComponent.heldBy = playerComponent;
-				}
-				// See if it's a powerup.
-				// const powerup = nearestCollidingEntity.get(PowerupComponent);
-				// if (powerup !== undefined) {
-				// }
-			}
+			// // Get the nearest entity colliding with the character.
+			// const collidingEntities = collisionSystem.collidingEntities.get(character);
+			// if (collidingEntities === undefined) {
+			// 	return; // Nothing nearby, so return.
+			// }
+			// let nearestCollidingEntity: Birch.World.Entity | undefined = undefined;
+			// let nearestCollidingDistance = Number.POSITIVE_INFINITY;
+			// for (const collidingEntity of collidingEntities) {
+			// 	const entityFrame = collidingEntity.get(Frame2DComponent)!;
+			// 	const distance = entityFrame.position.distance(frameComponent.position);
+			// 	if (distance < nearestCollidingDistance) {
+			// 		nearestCollidingDistance = distance;
+			// 		nearestCollidingEntity = collidingEntity;
+			// 	}
+			// }
+			// // If there is a nearest colliding entity,
+			// if (nearestCollidingEntity !== undefined) {
+			// 	// See if it's an holdable item and not held by someone else.
+			// 	const holdableComponent = nearestCollidingEntity.get(HoldableComponent);
+			// 	if (holdableComponent !== undefined && holdableComponent.heldBy === undefined) {
+			// 		// If the character already had a holdable item, toss it.
+			// 		if (playerComponent.holding !== undefined) {
+			// 			const heldItem = playerComponent.holding;
+			// 			playerComponent.setHolding(undefined);
+			// 			// Set the item as not held.
+			// 			const oldItemHoldable = heldItem.get(HoldableComponent)!;
+			// 			oldItemHoldable.heldBy = undefined;
+			// 			// Add the physics component and do the toss physics.
+			// 			const oldItemPhysics = heldItem.get(PhysicsComponent)!;
+			// 			const oldItemVelocity = Birch.Vector2.temp0;
+			// 			const forward = Birch.Vector2.temp1;
+			// 			forward.rot(Birch.Vector2.UnitX, frameComponent.rotation);
+			// 			oldItemVelocity.addMult(physicsComponent.velocity, 1, forward, 1);
+			// 			oldItemPhysics.setVelocity(oldItemVelocity);
+			// 			oldItemPhysics.boundEntities.remove(character);
+			// 		}
+			// 		// Pick up the new item.
+			// 		playerComponent.setHolding(nearestCollidingEntity);
+			// 		holdableComponent.heldBy = playerComponent;
+			// 	}
+			// 	// See if it's a powerup.
+			// 	// const powerup = nearestCollidingEntity.get(PowerupComponent);
+			// 	// if (powerup !== undefined) {
+			// 	// }
+			// }
 		}
 	}
 

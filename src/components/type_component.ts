@@ -4,11 +4,11 @@ import { Birch } from 'birch';
 export class TypeComponent extends Birch.World.Component {
 	type: symbol = TypeComponent.Nothing;
 
-	static Nothing = Symbol();
-	static Character = Symbol();
-	static Sword = Symbol();
-	static RocketLauncher = Symbol();
-	static Explosion = Symbol();
-	static ChainWand = Symbol();
-	static Chain = Symbol();
+	static Nothing = Symbol('Nothing');
+	static Character = Symbol('Character');
+	static Sword = Symbol('Sword');
+	static RocketLauncher = Symbol('RocketLauncher');
+	static Explosion = Symbol('Explosion');
+	static ChainWand = Symbol('ChainWand');
+	static Chain = Symbol('Chain');
 }

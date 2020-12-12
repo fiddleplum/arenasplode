@@ -66,12 +66,13 @@ export class PlayerSystem extends Birch.World.System {
 		// Create the character entity.
 		const character = this.world.entities.create('character ' + index);
 
-		// Create the type component.
-		character.components.create(TypeComponent, 'type').type = TypeComponent.Character;
-
 		// Create the sprite component.
 		const characterSprite = character.components.create(SpriteComponent, 'sprite');
 		characterSprite.url = 'assets/sprites/characters/bob.png';
+
+		// Create the type component.
+		const type = character.components.create(TypeComponent, 'type');
+		type.type = TypeComponent.Character;
 
 		// Create the frame component.
 		const characterFrame = character.components.create(Frame2DComponent, 'frame');
