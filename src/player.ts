@@ -1,6 +1,7 @@
 import { ArenaSplodeApp } from 'app';
 import { Birch } from 'birch';
 import { Camera } from 'camera';
+import { Character } from 'entities/character';
 
 export class Player {
 	// Constructs this.
@@ -19,14 +20,22 @@ export class Player {
 		div.style.height = '100%';
 		div.style.border = '1px solid white';
 
-		// // Create the camera.
-		this._camera = new Camera(this._viewport.stage);
-
 		// Create the character.
+		this._character = new Character(app.engine, app.scene);
+		app.addEntity(this._character);
+		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (app.map.size.x - 2), 1 + Math.random() * (app.map.size.y - 2)));
+
+		// Create the camera.
+		this._camera = new Camera(this._viewport.stage);
+		this._camera.setEntityFocus(this._character);
+		app.addEntity(this._camera);
 	}
 
 	// Destroys this.
 	destroy(): void {
+		this._app.removeEntity(this._character);
+		this._app.removeEntity(this._camera);
+		this._app.engine.viewports.destroy(this._viewport);
 	}
 
 	/** Sets the viewport bounds as a fraction of the total render size. */
@@ -63,4 +72,5 @@ export class Player {
 	private _app: ArenaSplodeApp;
 	private _viewport: Birch.Viewport;
 	private _camera: Camera;
+	private _character: Character;
 }

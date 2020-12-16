@@ -38,14 +38,18 @@ export class Map {
 			name: 'rotation',
 			type: Birch.Render.UniformGroup.Type.float
 		}, {
+			name: 'scale',
+			type: Birch.Render.UniformGroup.Type.vec2
+		}, {
 			name: 'level',
 			type: Birch.Render.UniformGroup.Type.float
 		}, {
 			name: 'colorTexture',
 			type: Birch.Render.UniformGroup.Type.sampler2D
 		}]);
-		this._model.uniforms.setUniform('position', Birch.Vector2.Zero.array);
+		this._model.uniforms.setUniform('position', [0, 0]);
 		this._model.uniforms.setUniform('rotation', 0);
+		this._model.uniforms.setUniform('scale', [1, 1]);
 		this._model.uniforms.setUniform('level', 0);
 		this._model.uniforms.setUniform('colorTexture', this._texture);
 		this._scene.models.add(this._model);

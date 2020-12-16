@@ -1,11 +1,8 @@
 import { Birch } from 'birch';
 
 export class Entity {
-	/** The constructor.
-	 *  @param level - The level of the entity. The map is at 0, items are at 1, players are at 2.
-	*/
-	constructor(level: number) {
-		this._level = level;
+	/** The destructor. */
+	destroy(): void {
 	}
 
 	/** Gets the position. */
@@ -38,9 +35,12 @@ export class Entity {
 		this._scale = scale;
 	}
 
-	/** Gets the level. The map is at 0, items are at 1, players are at 2. */
-	get level(): number {
-		return this._level;
+	/** The update function. */
+	update(_deltaTime: number): void {
+	}
+
+	/** The pre-render function. */
+	preRender(): void {
 	}
 
 	/** The 2D position within the world. */
@@ -51,7 +51,4 @@ export class Entity {
 
 	/** The scale of the entity. 1 means it has a diameter of length 1. */
 	private _scale: number = 1;
-
-	/** The level of the entity. The map is at 0, items are at 1, players are at 2. */
-	private _level: number = 0;
 }

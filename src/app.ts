@@ -2,6 +2,7 @@ import { App } from 'elm-app';
 import { Birch } from 'birch';
 import { Map } from 'map';
 import { Player } from 'player';
+import { Entity } from 'entity';
 // import { PlayerControlSystem } from 'systems/player_control_system';
 // import { CameraCenteringSystem } from 'systems/camera_centering_system';
 // import { PhysicsSystem } from 'systems/physics_system';
@@ -61,12 +62,39 @@ export class ArenaSplodeApp extends App {
 		return this._engine;
 	}
 
+	/** Gets the scene. */
 	get scene(): Birch.Render.Scene {
 		return this._scene;
 	}
 
+	/** Gets the map. */
+	get map(): Map {
+		return this._map;
+	}
+
+	/** Adds an entity so that it will update. */
+	addEntity(entity: Entity): void {
+		this._entities.add(entity);
+	}
+
+	/** Removes an entity so that it will stop updating. */
+	removeEntity(entity: Entity): void {
+		if (this._entities.remove(entity)) {
+			entity.destroy();
+		}
+	}
+
 	/** Updates the game. */
 	private _update(deltaTime: number): void {
+		// Do the update for every entity.
+		for (const entity of this._entities) {
+			entity.update(deltaTime);
+		}
+
+		// Do the pre-render for every entity.
+		for (const entity of this._entities) {
+			entity.preRender();
+		}
 	}
 
 	/** Make the viewports the optimal proportions. */
@@ -114,6 +142,8 @@ export class ArenaSplodeApp extends App {
 	private _map: Map;
 
 	private _players: Player[] = [];
+
+	private _entities: Birch.FastOrderedSet<Entity> = new Birch.FastOrderedSet();
 }
 
 ArenaSplodeApp.html = /* html */`
