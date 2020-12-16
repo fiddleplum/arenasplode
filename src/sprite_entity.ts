@@ -98,18 +98,22 @@ export class SpriteEntity extends Entity {
 		this._model.uniforms.setUniform('rotation', rotation);
 	}
 
-	/** Sets the scale as the diameter of the entity. */
-	setScale(scale: number): void {
-		super.setScale(scale);
-		Birch.Vector2.temp0.mult(this._scaleXY, scale);
-		this._model.uniforms.setUniform('scale', Birch.Vector2.temp0.array);
+	/** Sets the radius. */
+	setRadius(radius: number): void {
+		super.setRadius(radius);
+		const newScale = Birch.Vector2.pool.get();
+		newScale.mult(this._scaleXY, radius);
+		this._model.uniforms.setUniform('scale', newScale.array);
+		Birch.Vector2.pool.release(newScale);
 	}
 
 	/** Sets the scale of the sprite, as multiplied by the entity scale. */
 	protected setScaleXY(scaleXY: Birch.Vector2Readonly): void {
 		this._scaleXY.copy(scaleXY);
-		Birch.Vector2.temp0.mult(this._scaleXY, this.scale);
-		this._model.uniforms.setUniform('scale', Birch.Vector2.temp0.array);
+		const newScale = Birch.Vector2.pool.get();
+		newScale.mult(this._scaleXY, this.radius);
+		this._model.uniforms.setUniform('scale', newScale.array);
+		Birch.Vector2.pool.release(newScale);
 	}
 
 	/** Sets the texture name. */

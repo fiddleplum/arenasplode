@@ -1,4 +1,5 @@
 import { Birch } from 'birch';
+import { Entity } from 'entity';
 import { Tile } from 'tile';
 
 export class Map {
@@ -72,6 +73,84 @@ export class Map {
 		this._engine.renderer.meshes.destroy(this._mesh);
 	}
 
+	/** Finds all tiles that overlap the entity and process the overlaps. */
+	handleOverlappingTiles(entity: Entity): void {
+		const direction = Birch.Vector2.pool.get();
+		let numOverlappingTiles = 0;
+		// Get the integer bounds of the entity.
+		const min = Birch.Vector2.pool.get();
+		const max = Birch.Vector2.pool.get();
+		min.set(Birch.Num.clamp(Math.floor(entity.position.x - entity.radius), 0, this._size.x - 1),
+			Birch.Num.clamp(Math.floor(entity.position.y - entity.radius), 0, this._size.y - 1));
+		max.set(Birch.Num.clamp(Math.floor(entity.position.x + entity.radius), 0, this._size.x - 1),
+			Birch.Num.clamp(Math.floor(entity.position.y + entity.radius), 0, this._size.y - 1));
+		// Go through each tile and find the overlap.
+		for (let x = min.x; x <= max.x; x++) {
+			for (let y = min.y; y <= max.y; y++) {
+				const tile = Birch.Vector2.pool.get();
+				tile.set(x, y);
+				const distance = this._getTileOverlap(direction, entity, tile);
+				// If they overlap, add them to the list.
+				if (distance > 0) {
+					if (numOverlappingTiles === this._overlappingTiles.length) {
+						this._overlappingTiles.push(new TileOverlap(distance, direction, tile));
+					}
+					else {
+						const tileOverlap = this._overlappingTiles[numOverlappingTiles];
+						tileOverlap.distance = distance;
+						tileOverlap.direction.copy(direction);
+						tileOverlap.tile.copy(tile);
+					}
+					numOverlappingTiles += 1;
+				}
+				Birch.Vector2.pool.release(tile);
+			}
+		}
+		Birch.Vector2.pool.release(min);
+		Birch.Vector2.pool.release(max);
+		Birch.Vector2.pool.release(direction);
+		// Clear out the remaining items in the list, since it is persistent from the last entity.
+		for (let i = numOverlappingTiles; i < this._overlappingTiles.length; i++) {
+			this._overlappingTiles[i].distance = 0;
+		}
+		// Sort the overlapping entities list.
+		Birch.Sort.sort(this._overlappingTiles, TileOverlap.isLess);
+		// Call the appropriate onOverlap function for the entities.
+		for (let i = 0; i < numOverlappingTiles; i++) {
+			this._onTileOverlap(entity, this._overlappingTiles[i].tile);
+		}
+	}
+
+	/** Returns the distance and the direction of overlap between the entity and the tile. */
+	private _getTileOverlap(outDirection: Birch.Vector2, entity: Entity, tile: Birch.Vector2): number {
+		const diff = Birch.Vector2.pool.get();
+		diff.set(tile.x + 0.5, tile.y + 0.5);
+		diff.sub(entity.position, diff);
+		let distance = 0;
+		if (Math.abs(diff.x) > Math.abs(diff.y)) {
+			if (diff.x >= 0) {
+				outDirection.set(1, 0);
+				distance = (tile.x + 1) - (entity.position.x - entity.radius);
+			}
+			else {
+				outDirection.set(-1, 0);
+				distance = (entity.position.x + entity.radius) - tile.x;
+			}
+		}
+		else {
+			if (diff.y >= 0) {
+				outDirection.set(0, 1);
+				distance = (tile.y + 1) - (entity.position.y - entity.radius);
+			}
+			else {
+				outDirection.set(0, -1);
+				distance = (entity.position.y + entity.radius) - tile.y;
+			}
+		}
+		Birch.Vector2.pool.release(diff);
+		return distance;
+	}
+
 	get tiles(): Tile[][] {
 		return this._tiles;
 	}
@@ -83,6 +162,24 @@ export class Map {
 	setSize(size: Birch.Vector2): void {
 		this._size.copy(size);
 		this._updateMap();
+	}
+
+	/** Process the overlap between an entity and tile. */
+	private _onTileOverlap(entity: Entity, tile: Birch.Vector2): void {
+		const direction = Birch.Vector2.pool.get();
+		const distance = this._getTileOverlap(direction, entity, tile);
+		// If it's a wall, move it away.
+		if (this._tiles[tile.y][tile.x].type === Tile.Type.Wall) {
+			const offset = Birch.Vector2.pool.get();
+			offset.addMult(entity.position, 1.0, direction, distance);
+			entity.setPosition(offset);
+			Birch.Vector2.pool.release(offset);
+			const newVelocity = Birch.Vector2.pool.get();
+			newVelocity.addMult(entity.velocity, 1, direction, Math.max(0, -entity.velocity.dot(direction)));
+			entity.setVelocity(newVelocity);
+			Birch.Vector2.pool.release(newVelocity);
+		}
+		Birch.Vector2.pool.release(direction);
 	}
 
 	private _updateMap(): void {
@@ -149,4 +246,29 @@ export class Map {
 	private _mesh: Birch.Render.Mesh;
 	private _shader: Birch.Render.Shader;
 	private _texture: Birch.Render.Texture;
+
+	// A persisent array used by the doOverlappingTiles function.
+	private _overlappingTiles: TileOverlap[] = [];
+}
+
+class TileOverlap {
+	constructor(distance: number, direction: Birch.Vector2, tile: Birch.Vector2) {
+		this.distance = distance;
+		this.direction = new Birch.Vector2(direction.x, direction.y);
+		this.tile = new Birch.Vector2(tile.x, tile.y);
+	}
+
+	distance: number;
+	direction: Birch.Vector2;
+	tile: Birch.Vector2;
+
+	static isLess(tileOverlap1: TileOverlap, tileOverlap2: TileOverlap): boolean {
+		if (tileOverlap1.distance === tileOverlap2.distance) {
+			if (tileOverlap1.tile.x === tileOverlap2.tile.x) {
+				return tileOverlap1.tile.y < tileOverlap2.tile.y;
+			}
+			return tileOverlap1.tile.x < tileOverlap2.tile.x;
+		}
+		return tileOverlap1.distance > tileOverlap2.distance;
+	}
 }

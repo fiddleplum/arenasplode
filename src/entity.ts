@@ -25,14 +25,54 @@ export class Entity {
 		this._rotation = rotation;
 	}
 
-	/** Gets the scale as the diameter of the entity. */
-	get scale(): number {
-		return this._scale;
+	/** Gets the radius. */
+	get radius(): number {
+		return this._radius;
 	}
 
-	/** Sets the scale as the diameter of the entity. */
-	setScale(scale: number): void {
-		this._scale = scale;
+	/** Sets the radius. */
+	setRadius(radius: number): void {
+		this._radius = radius;
+	}
+
+	/** Gets the mass. */
+	get mass(): number {
+		return this._mass;
+	}
+
+	/** Sets the mass. */
+	setMass(mass: number): void {
+		this._mass = mass;
+	}
+
+	/** Gets the velocity in units per second. */
+	get velocity(): Birch.Vector2Readonly {
+		return this._velocity;
+	}
+
+	/** Sets the velocity in units per second. */
+	setVelocity(velocity: Birch.Vector2Readonly): void {
+		this._velocity.copy(velocity);
+	}
+
+	/** Gets the angular velocity in radians per second. */
+	get angularVelocity(): number {
+		return this._angularVelocity;
+	}
+
+	/** Sets the angular velocity in radians per second. */
+	setAngularVelocity(angularVelocity: number): void {
+		this._angularVelocity = angularVelocity;
+	}
+
+	/** Gets the spring factor. When doing collision physics, this is the spring coefficient. */
+	get springFactor(): number {
+		return this._springFactor;
+	}
+
+	/** Sets the spring factor. When doing collision physics, this is the spring coefficient. */
+	setSpringFactor(springFactor: number): void {
+		this._springFactor = springFactor;
 	}
 
 	/** The update function. */
@@ -49,6 +89,18 @@ export class Entity {
 	/** The rotation in radians. */
 	private _rotation: number = 0;
 
-	/** The scale of the entity. 1 means it has a diameter of length 1. */
-	private _scale: number = 1;
+	/** The radius of the entity. */
+	private _radius: number = 0.5;
+
+	/** The mass of the entity. */
+	private _mass = 1;
+
+	/** The velocity of the entity. */
+	private _velocity = new Birch.Vector2();
+
+	/** The angular velocity of the entity. */
+	private _angularVelocity = 0;
+
+	/** When doing collision physics, this is the spring coefficient. */
+	private _springFactor = 0;
 }

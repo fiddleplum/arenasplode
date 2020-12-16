@@ -3,6 +3,8 @@ import { Birch } from 'birch';
 import { Camera } from 'camera';
 import { Character } from 'entities/character';
 
+const axisThreshold: number = 0.15;
+
 export class Player {
 	// Constructs this.
 	constructor(index: number, app: ArenaSplodeApp) {
@@ -31,6 +33,35 @@ export class Player {
 		app.addEntity(this._camera);
 	}
 
+	updateControls(): void {
+		const controller = this._app.engine.input.getController(this._index);
+		// If for some reason the controller isn't there, do nothing.
+		if (controller === undefined) {
+			return;
+		}
+		// Handle moving.
+		let x = controller.axis(0);
+		let y = controller.axis(1);
+		if (Math.abs(x) < axisThreshold) {
+			x = 0;
+		}
+		if (Math.abs(y) < axisThreshold) {
+			y = 0;
+		}
+		if (x !== 0 || y !== 0) {
+			// Update the velocity.
+			const velocity = this._character.velocity;
+			const newVelocity = Birch.Vector2.pool.get();
+			newVelocity.set(velocity.x + x * .25, velocity.y - y * .25);
+			this._character.setVelocity(newVelocity);
+			Birch.Vector2.pool.release(newVelocity);
+
+			// Point the character in the right direction.
+			const newAngle = Math.atan2(-y, x);
+			this._character.setRotation(newAngle);
+		}
+	}
+
 	// Destroys this.
 	destroy(): void {
 		this._app.removeEntity(this._character);
@@ -47,7 +78,7 @@ export class Player {
 		this._viewport.div.style.height = 'calc(' + (height * 100) + '% - 2px)';
 
 		// Update the camera.
-		const widestSize = 32;
+		const widestSize = 10;
 		const viewportWidth = this._viewport.div.clientWidth;
 		const viewportHeight = this._viewport.div.clientHeight;
 		if (viewportWidth >= viewportHeight) {

@@ -31,17 +31,19 @@ export class ArenaSplodeApp extends App {
 		// Add the callback for when controllers are connected or disconnected.
 		this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
 			if (connected) {
+				const oldPlayer = this._players.getIndex(index);
 				// Clean out any old player if it's still there.
-				if (this._players[index] !== undefined) {
-					this._players[index].destroy();
+				if (oldPlayer !== undefined) {
+					oldPlayer.destroy();
 				}
 				// Add new player.
-				this._players[index] = new Player(index, this);
+				this._players.add(new Player(index, this));
 			}
 			else {
-				if (this._players[index] !== undefined) {
-					this._players[index].destroy();
-					this._players.splice(index, 1);
+				const player = this._players.getIndex(index);
+				if (player !== undefined) {
+					player.destroy();
+					this._players.remove(player);
 				}
 			}
 			this._adjustViewports();
@@ -86,9 +88,34 @@ export class ArenaSplodeApp extends App {
 
 	/** Updates the game. */
 	private _update(deltaTime: number): void {
+		// Do the update for every player.
+		for (const player of this._players) {
+			player.updateControls();
+		}
+
 		// Do the update for every entity.
 		for (const entity of this._entities) {
 			entity.update(deltaTime);
+		}
+
+		// Do physics iteration for every entity.
+		for (const entity of this._entities) {
+			const newPosition = Birch.Vector2.pool.get();
+			newPosition.addMult(entity.position, 1, entity.velocity, deltaTime);
+			entity.setPosition(newPosition);
+			entity.setRotation(entity.rotation + entity.angularVelocity * deltaTime);
+			Birch.Vector2.pool.release(newPosition);
+		}
+
+		// // Handle entity-entity collisions.
+		// for (const entity1 of this._entities) {
+		// 	for (const entity2 of this._entities) {
+		// 	}
+		// }
+
+		// Handle entity-map collisions.
+		for (const entity of this._entities) {
+			this._map.handleOverlappingTiles(entity);
 		}
 
 		// Do the pre-render for every entity.
@@ -99,7 +126,7 @@ export class ArenaSplodeApp extends App {
 
 	/** Make the viewports the optimal proportions. */
 	private _adjustViewports(): void {
-		const numPlayers = this._players.length;
+		const numPlayers = this._players.size();
 		const div = document.querySelector('div') as HTMLDivElement;
 		// Cycle through every arrangement of views and find the most "square" arrangement.
 		let bestCols = 1;
@@ -141,7 +168,7 @@ export class ArenaSplodeApp extends App {
 
 	private _map: Map;
 
-	private _players: Player[] = [];
+	private _players: Birch.FastOrderedSet<Player> = new Birch.FastOrderedSet();
 
 	private _entities: Birch.FastOrderedSet<Entity> = new Birch.FastOrderedSet();
 }
