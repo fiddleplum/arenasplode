@@ -11,10 +11,14 @@
 		"types": [],
 		"baseUrl": "src",
 		"paths": {
-			"birch": [ "../../birch/src/index" ]
+			"birch": [ "../../birch/src/index" ],
+			"elm-app": [ "../../elm-app/src/index" ]
 		}
 	},
 	"include": [
-		"src/**/*"
+		"src/**/*.ts"
+	],
+	"exclude": [
+		"src/old/**/*.ts"
 	]
 }

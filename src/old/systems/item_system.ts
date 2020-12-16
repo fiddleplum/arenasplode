@@ -1,7 +1,7 @@
 import { Birch } from 'birch';
 import { Frame2DComponent } from 'components/frame_2d_component';
 import { HoldableComponent } from 'components/holdable_component';
-import { MapComponent } from 'components/map_component';
+import { MapComponent } from 'map';
 import { PhysicsComponent } from 'components/physics_component';
 import { SpriteComponent } from 'components/sprite_component';
 import { SwordComponent } from 'components/sword_component';

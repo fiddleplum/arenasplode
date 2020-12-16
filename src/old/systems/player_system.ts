@@ -2,7 +2,7 @@ import { Birch } from 'birch';
 import { PhysicsComponent } from 'components/physics_component';
 import { SpriteComponent } from 'components/sprite_component';
 import { PlayerComponent } from 'components/player_component';
-import { MapComponent } from 'components/map_component';
+import { MapComponent } from 'map';
 import { Frame2DComponent } from 'components/frame_2d_component';
 import { TypeComponent } from 'components/type_component';
 
@@ -106,54 +106,6 @@ export class PlayerSystem extends Birch.World.System {
 		}
 	}
 
-	/** Make the viewports the optimal proportions. */
-	private _adjustViewports(): void {
-		const numPlayers = this._players.size;
-		const div = document.querySelector('div') as HTMLDivElement;
-		// Cycle through every arrangement of views and find the most "square" arrangement.
-		let bestCols = 1;
-		let bestScore = 0;
-		for (let cols = 1; cols <= numPlayers; cols++) {
-			const rows = Math.ceil(numPlayers / cols);
-			let score = 1;
-			let aspectOfEachView = (div.clientWidth / cols) / (div.clientHeight / rows);
-			// Favor horizontal views.
-			if (aspectOfEachView > 1) {
-				score *= 1.5;
-			}
-			// Favor square views.
-			if (aspectOfEachView > 1) {
-				aspectOfEachView = 1 / aspectOfEachView;
-			}
-			score *= aspectOfEachView;
-			// Favor views with no empty spaces.
-			if (numPlayers % cols === 0) {
-				score *= 1.5;
-			}
-			// If this score is the best, record the best score and columns.
-			if (score >= bestScore || cols === 1) {
-				bestCols = cols;
-				bestScore = score;
-			}
-		}
-		// Adjust the viewports to work with the best number of columns.
-		const bestRows = Math.ceil(numPlayers / bestCols);
-		const viewports = this.world.engine.viewports;
-		let i = 0;
-		for (const index of this._players) {
-			const viewport = viewports.get('viewport ' + index);
-			if (viewport === undefined) {
-				return;
-			}
-			const row = Math.floor(i / bestCols);
-			const col = i % bestCols;
-			viewport.div.style.left = (col / bestCols * 100) + '%';
-			viewport.div.style.top = (row / bestRows * 100) + '%';
-			viewport.div.style.width = 'calc(' + (1 / bestCols * 100) + '% - 2px)';
-			viewport.div.style.height = 'calc(' + (1 / bestRows * 100) + '% - 2px)';
-			i++;
-		}
-	}
 
 	private _players: Set<number> = new Set();
 }

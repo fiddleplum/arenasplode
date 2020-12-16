@@ -1,12 +1,14 @@
 import { Birch } from 'birch';
 import { Tile } from 'tile';
 
-export class MapComponent extends Birch.World.ModelComponent {
-	constructor(entity: Birch.World.Entity) {
-		super(entity);
+export class Map {
+	constructor(engine: Birch.Engine, scene: Birch.Render.Scene) {
+		// Set the engine and scene.
+		this._engine = engine;
+		this._scene = scene;
 
 		// Create the mesh.
-		this._mesh = this.engine.renderer.meshes.create();
+		this._mesh = this._engine.renderer.meshes.create();
 		this._mesh.setVertexFormat([[{
 			location: 0, // position
 			type: 'float',
@@ -17,51 +19,53 @@ export class MapComponent extends Birch.World.ModelComponent {
 			dimensions: 2
 		}]]);
 
-		this._shader = this.engine.renderer.shaders.create();
+		this._shader = this._engine.renderer.shaders.create();
 
 		// Create the texture.
-		this._texture = this.engine.renderer.textures.create();
+		this._texture = this._engine.renderer.textures.create();
 		this._texture.setSource('assets/sprites/tiles.png');
 
 		// Setup the model.
-		this.model.mesh = this._mesh;
-		this.model.shader = this._shader;
+		this._model = this._engine.renderer.models.create();
+		this._model.mesh = this._mesh;
+		this._model.shader = this._shader;
 
 		// Set the model's uniforms.
-		this.model.uniforms.setUniformTypes([{
+		this._model.uniforms.setUniformTypes([{
 			name: 'position',
-			type: Birch.Render.Uniforms.Type.vec2
+			type: Birch.Render.UniformGroup.Type.vec2
 		}, {
 			name: 'rotation',
-			type: Birch.Render.Uniforms.Type.float
+			type: Birch.Render.UniformGroup.Type.float
 		}, {
 			name: 'level',
-			type: Birch.Render.Uniforms.Type.float
+			type: Birch.Render.UniformGroup.Type.float
 		}, {
 			name: 'colorTexture',
-			type: Birch.Render.Uniforms.Type.sampler2D
+			type: Birch.Render.UniformGroup.Type.sampler2D
 		}]);
-		this.model.uniforms.setUniform('position', Birch.Vector2.Zero.array);
-		this.model.uniforms.setUniform('rotation', 0);
-		this.model.uniforms.setUniform('level', 0);
-		this.model.uniforms.setUniform('colorTexture', this._texture);
+		this._model.uniforms.setUniform('position', Birch.Vector2.Zero.array);
+		this._model.uniforms.setUniform('rotation', 0);
+		this._model.uniforms.setUniform('level', 0);
+		this._model.uniforms.setUniform('colorTexture', this._texture);
+		this._scene.models.add(this._model);
 
 		// Set the size of the map.
 		this._size = new Birch.Vector2(25, 25);
 		this._updateMap();
 
 		// Create the shader.
-		this.engine.downloader.getJson<Birch.Render.Shader.Options>('assets/shaders/sprite.json').then((json) => {
+		this._engine.downloader.getJson<Birch.Render.Shader.Options>('assets/shaders/sprite.json').then((json) => {
 			this._shader.setFromOptions(json);
 		});
 	}
 
 	destroy(): void {
-		this.entity.world.scene.models.remove(this.model);
-		this.engine.renderer.models.destroy(this.model);
-		this.engine.renderer.textures.destroy(this._texture);
-		this.engine.renderer.shaders.destroy(this._shader);
-		this.engine.renderer.meshes.destroy(this._mesh);
+		this._scene.models.remove(this._model);
+		this._engine.renderer.models.destroy(this._model);
+		this._engine.renderer.textures.destroy(this._texture);
+		this._engine.renderer.shaders.destroy(this._shader);
+		this._engine.renderer.meshes.destroy(this._mesh);
 	}
 
 	get tiles(): Tile[][] {
@@ -135,6 +139,9 @@ export class MapComponent extends Birch.World.ModelComponent {
 	private _size: Birch.Vector2 = new Birch.Vector2();
 	private _tiles: Tile[][] = [];
 
+	private _engine: Birch.Engine;
+	private _scene: Birch.Render.Scene;
+	private _model: Birch.Render.Model;
 	private _mesh: Birch.Render.Mesh;
 	private _shader: Birch.Render.Shader;
 	private _texture: Birch.Render.Texture;

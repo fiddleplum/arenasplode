@@ -1,6 +1,6 @@
 import { Birch } from 'birch';
 import { Frame2DComponent } from 'components/frame_2d_component';
-import { MapComponent } from 'components/map_component';
+import { MapComponent } from 'map';
 import { Tile } from 'tile';
 import { Sort } from '../../../birch/src/internal';
 
