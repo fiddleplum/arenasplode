@@ -3,6 +3,7 @@ import { Birch } from 'birch';
 import { Map } from 'map';
 import { Player } from 'player';
 import { Entity } from 'entity';
+import { Items } from 'items';
 // import { PlayerControlSystem } from 'systems/player_control_system';
 // import { CameraCenteringSystem } from 'systems/camera_centering_system';
 // import { PhysicsSystem } from 'systems/physics_system';
@@ -24,6 +25,11 @@ export class ArenaSplodeApp extends App {
 		// Create the map.
 		this._map = new Map(this._engine, this._scene);
 
+		// Create the initial items.
+		for (let i = 0; i < this._map.size.x * this._map.size.y / 30; i++) {
+			Items.createRandomItem(this);
+		}
+
 		// Add resize callback. Adjusts the viewport.
 		this._adjustViewports = this._adjustViewports.bind(this);
 		window.addEventListener('resize', this._adjustViewports);
@@ -31,6 +37,7 @@ export class ArenaSplodeApp extends App {
 		// Add the callback for when controllers are connected or disconnected.
 		this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
 			if (connected) {
+				console.log(`Player ${index + 1} connected.`);
 				const oldPlayer = this._players.getIndex(index);
 				// Clean out any old player if it's still there.
 				if (oldPlayer !== undefined) {
@@ -40,6 +47,7 @@ export class ArenaSplodeApp extends App {
 				this._players.add(new Player(index, this));
 			}
 			else {
+				console.log(`Player ${index + 1} disconnected.`);
 				const player = this._players.getIndex(index);
 				if (player !== undefined) {
 					player.destroy();
@@ -115,7 +123,7 @@ export class ArenaSplodeApp extends App {
 
 		// Handle entity-map collisions.
 		for (const entity of this._entities) {
-			this._map.handleOverlappingTiles(entity);
+			this._map.handleOverlappingTiles(entity, deltaTime);
 		}
 
 		// Do the pre-render for every entity.
@@ -195,3 +203,11 @@ ArenaSplodeApp.css = /* css */`
 
 ArenaSplodeApp.setAppClass();
 ArenaSplodeApp.register();
+
+// Typing to ensure TypeScript is happy with the app global.
+declare global {
+	interface Window {
+		Birch: typeof Birch;
+	}
+}
+window.Birch = Birch;

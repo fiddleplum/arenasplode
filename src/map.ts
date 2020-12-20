@@ -1,4 +1,5 @@
 import { Birch } from 'birch';
+import { Character } from 'entities/character';
 import { Entity } from 'entity';
 import { Tile } from 'tile';
 
@@ -74,7 +75,7 @@ export class Map {
 	}
 
 	/** Finds all tiles that overlap the entity and process the overlaps. */
-	handleOverlappingTiles(entity: Entity): void {
+	handleOverlappingTiles(entity: Entity, deltaTime: number): void {
 		const direction = Birch.Vector2.pool.get();
 		let numOverlappingTiles = 0;
 		// Get the integer bounds of the entity.
@@ -117,7 +118,7 @@ export class Map {
 		Birch.Sort.sort(this._overlappingTiles, TileOverlap.isLess);
 		// Call the appropriate onOverlap function for the entities.
 		for (let i = 0; i < numOverlappingTiles; i++) {
-			this._onTileOverlap(entity, this._overlappingTiles[i].tile);
+			this._onTileOverlap(entity, this._overlappingTiles[i].tile, deltaTime);
 		}
 	}
 
@@ -165,11 +166,12 @@ export class Map {
 	}
 
 	/** Process the overlap between an entity and tile. */
-	private _onTileOverlap(entity: Entity, tile: Birch.Vector2): void {
+	private _onTileOverlap(entity: Entity, tile: Birch.Vector2, deltaTime: number): void {
 		const direction = Birch.Vector2.pool.get();
 		const distance = this._getTileOverlap(direction, entity, tile);
+		const tileType = this._tiles[tile.y][tile.x].type;
 		// If it's a wall, move it away.
-		if (this._tiles[tile.y][tile.x].type === Tile.Type.Wall) {
+		if (tileType === Tile.Type.Wall) {
 			const offset = Birch.Vector2.pool.get();
 			offset.addMult(entity.position, 1.0, direction, distance);
 			entity.setPosition(offset);
@@ -177,6 +179,20 @@ export class Map {
 			const newVelocity = Birch.Vector2.pool.get();
 			newVelocity.addMult(entity.velocity, 1, direction, Math.max(0, -entity.velocity.dot(direction)));
 			entity.setVelocity(newVelocity);
+			Birch.Vector2.pool.release(newVelocity);
+		}
+		else if (tileType === Tile.Type.Floor) {
+			// Apply friction.
+			const frictionCoefficient = 10.00;
+			const newVelocity = Birch.Vector2.pool.get();
+			if (entity instanceof Character) {
+				// console.log(Math.pow(friction, deltaTime));
+				// console.log(Math.pow(1 - friction, distance * deltaTime));
+			}
+			const friction = 1 - distance * (Math.pow(1 + frictionCoefficient, deltaTime) - 1);
+			newVelocity.mult(entity.velocity, friction);
+			entity.setVelocity(newVelocity);
+			entity.setAngularVelocity(entity.angularVelocity * friction);
 			Birch.Vector2.pool.release(newVelocity);
 		}
 		Birch.Vector2.pool.release(direction);

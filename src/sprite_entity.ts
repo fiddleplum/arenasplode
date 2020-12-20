@@ -3,7 +3,7 @@ import { Entity } from 'entity';
 
 export class SpriteEntity extends Entity {
 	/** The constructor.
-	  * @param level - The map is at 0, items are at 1, players are at 2. */
+	  * @param level - The map is at 0, items are at 1, held items are at 2, players are at 3. */
 	constructor(engine: Birch.Engine, scene: Birch.Render.Scene, level: number) {
 		super();
 
