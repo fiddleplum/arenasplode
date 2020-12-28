@@ -1,5 +1,4 @@
 import { Birch } from 'birch';
-import { Character } from 'entities/character';
 import { Entity } from 'entity';
 import { Tile } from 'tile';
 
@@ -132,33 +131,6 @@ export class Map {
 		const distance = Math.max(entity.radius - outDirection.norm, 0);
 		outDirection.normalize(outDirection);
 		return distance;
-
-		// const diff = Birch.Vector2.pool.get();
-		// diff.set(tile.x + 0.5, tile.y + 0.5);
-		// diff.sub(entity.position, diff);
-		// let distance = 0;
-		// if (Math.abs(diff.x) > Math.abs(diff.y)) {
-		// 	if (diff.x >= 0) {
-		// 		outDirection.set(1, 0);
-		// 		distance = (tile.x + 1) - (entity.position.x - entity.radius);
-		// 	}
-		// 	else {
-		// 		outDirection.set(-1, 0);
-		// 		distance = (entity.position.x + entity.radius) - tile.x;
-		// 	}
-		// }
-		// else {
-		// 	if (diff.y >= 0) {
-		// 		outDirection.set(0, 1);
-		// 		distance = (tile.y + 1) - (entity.position.y - entity.radius);
-		// 	}
-		// 	else {
-		// 		outDirection.set(0, -1);
-		// 		distance = (entity.position.y + entity.radius) - tile.y;
-		// 	}
-		// }
-		// Birch.Vector2.pool.release(diff);
-		// return distance;
 	}
 
 	get tiles(): Tile[][] {
