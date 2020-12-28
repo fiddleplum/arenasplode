@@ -124,32 +124,41 @@ export class Map {
 
 	/** Returns the distance and the direction of overlap between the entity and the tile. */
 	private _getTileOverlap(outDirection: Birch.Vector2, entity: Entity, tile: Birch.Vector2): number {
-		const diff = Birch.Vector2.pool.get();
-		diff.set(tile.x + 0.5, tile.y + 0.5);
-		diff.sub(entity.position, diff);
-		let distance = 0;
-		if (Math.abs(diff.x) > Math.abs(diff.y)) {
-			if (diff.x >= 0) {
-				outDirection.set(1, 0);
-				distance = (tile.x + 1) - (entity.position.x - entity.radius);
-			}
-			else {
-				outDirection.set(-1, 0);
-				distance = (entity.position.x + entity.radius) - tile.x;
-			}
-		}
-		else {
-			if (diff.y >= 0) {
-				outDirection.set(0, 1);
-				distance = (tile.y + 1) - (entity.position.y - entity.radius);
-			}
-			else {
-				outDirection.set(0, -1);
-				distance = (entity.position.y + entity.radius) - tile.y;
-			}
-		}
-		Birch.Vector2.pool.release(diff);
+		// Get closest point within tile to the circle of the entity.
+		const tileBounds = Birch.Rectangle.pool.get();
+		tileBounds.set(tile.x, tile.y, 1, 1);
+		tileBounds.closest(outDirection, entity.position);
+		outDirection.sub(entity.position, outDirection);
+		const distance = Math.max(entity.radius - outDirection.norm, 0);
+		outDirection.normalize(outDirection);
 		return distance;
+
+		// const diff = Birch.Vector2.pool.get();
+		// diff.set(tile.x + 0.5, tile.y + 0.5);
+		// diff.sub(entity.position, diff);
+		// let distance = 0;
+		// if (Math.abs(diff.x) > Math.abs(diff.y)) {
+		// 	if (diff.x >= 0) {
+		// 		outDirection.set(1, 0);
+		// 		distance = (tile.x + 1) - (entity.position.x - entity.radius);
+		// 	}
+		// 	else {
+		// 		outDirection.set(-1, 0);
+		// 		distance = (entity.position.x + entity.radius) - tile.x;
+		// 	}
+		// }
+		// else {
+		// 	if (diff.y >= 0) {
+		// 		outDirection.set(0, 1);
+		// 		distance = (tile.y + 1) - (entity.position.y - entity.radius);
+		// 	}
+		// 	else {
+		// 		outDirection.set(0, -1);
+		// 		distance = (entity.position.y + entity.radius) - tile.y;
+		// 	}
+		// }
+		// Birch.Vector2.pool.release(diff);
+		// return distance;
 	}
 
 	get tiles(): Tile[][] {
@@ -172,24 +181,33 @@ export class Map {
 		const tileType = this._tiles[tile.y][tile.x].type;
 		// If it's a wall, move it away.
 		if (tileType === Tile.Type.Wall) {
+			// Get closest point within tile to the circle of the entity.
+			const tileBounds = Birch.Rectangle.pool.get();
 			const offset = Birch.Vector2.pool.get();
-			offset.addMult(entity.position, 1.0, direction, distance);
-			entity.setPosition(offset);
+			tileBounds.set(tile.x, tile.y, 1, 1);
+			tileBounds.closest(offset, entity.position);
+
+			offset.sub(entity.position, offset);
+			const offsetNorm = offset.norm;
+			if (offsetNorm > 0 && entity.radius > offsetNorm) {
+				offset.mult(offset, (entity.radius - offsetNorm) / offsetNorm);
+				const newPosition = Birch.Vector2.pool.get();
+				newPosition.addMult(entity.position, 1, offset, 1);
+				entity.setPosition(newPosition);
+				Birch.Vector2.pool.release(newPosition);
+				const newVelocity = Birch.Vector2.pool.get();
+				newVelocity.addMult(entity.velocity, 1, offset, Math.max(0, -entity.velocity.dot(offset)));
+				entity.setVelocity(newVelocity);
+				Birch.Vector2.pool.release(newVelocity);
+			}
 			Birch.Vector2.pool.release(offset);
-			const newVelocity = Birch.Vector2.pool.get();
-			newVelocity.addMult(entity.velocity, 1, direction, Math.max(0, -entity.velocity.dot(direction)));
-			entity.setVelocity(newVelocity);
-			Birch.Vector2.pool.release(newVelocity);
+			Birch.Rectangle.pool.release(tileBounds);
 		}
 		else if (tileType === Tile.Type.Floor) {
 			// Apply friction.
-			const frictionCoefficient = 10.00;
+			const frictionCoefficient = 0.05;
 			const newVelocity = Birch.Vector2.pool.get();
-			if (entity instanceof Character) {
-				// console.log(Math.pow(friction, deltaTime));
-				// console.log(Math.pow(1 - friction, distance * deltaTime));
-			}
-			const friction = 1 - distance * (Math.pow(1 + frictionCoefficient, deltaTime) - 1);
+			const friction = 1 - distance * Math.pow(frictionCoefficient, 60 * deltaTime);
 			newVelocity.mult(entity.velocity, friction);
 			entity.setVelocity(newVelocity);
 			entity.setAngularVelocity(entity.angularVelocity * friction);

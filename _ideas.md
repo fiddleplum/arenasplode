@@ -1,3 +1,31 @@
+# Collision Response
+
+p0 = initial position
+v0 = initial velocity
+dt = frame time
+
+For i = 0; i < 2; i++:
+	If i == 0:
+		v = v0
+
+	p1 = p0 + v * dt
+
+	Find the earliest collision U time (from 0 to 1, p0 to p1) and collision point pU and normal N.
+		No collision just means U is 1 and pU is p1.
+
+	If U == 0:
+		break
+
+	Move the entity to pU.
+
+	If U < 1 and i < 2:
+		v = v0 + N * (v0 dot N) // v is perpendicular to N in the general direction of v.
+		p0 = pU. // The next iteration starts where this one ends.
+		dt = dt * (1 - U) // The remaining time left.
+
+	Else:
+		break
+
 # Original Arenasplode Game Loop
 
 object->update: Update game logic. (updates velocities)
