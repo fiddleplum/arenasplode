@@ -127,6 +127,7 @@ export class Map {
 		const tileBounds = Birch.Rectangle.pool.get();
 		tileBounds.set(tile.x, tile.y, 1, 1);
 		tileBounds.closest(outDirection, entity.position);
+		Birch.Rectangle.pool.release(tileBounds);
 		outDirection.sub(entity.position, outDirection);
 		const distance = Math.max(entity.radius - outDirection.norm, 0);
 		outDirection.normalize(outDirection);
