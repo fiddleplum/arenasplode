@@ -1,8 +1,8 @@
 import { App } from 'elm-app';
 import { Birch } from 'birch';
-import { Map } from 'map';
+import { Level } from 'level';
 import { Player } from 'player';
-import { Entity } from 'entity';
+import { Entity } from 'entities/entity';
 import { Items } from 'items';
 // import { PlayerControlSystem } from 'systems/player_control_system';
 // import { CameraCenteringSystem } from 'systems/camera_centering_system';
@@ -23,10 +23,10 @@ export class ArenaSplodeApp extends App {
 		this._scene = this._engine.renderer.scenes.create();
 
 		// Create the map.
-		this._map = new Map(this._engine, this._scene);
+		this._level = new Level(this._engine, this._scene);
 
 		// Create the initial items.
-		for (let i = 0; i < this._map.size.x * this._map.size.y / 30; i++) {
+		for (let i = 0; i < this._level.size.x * this._level.size.y / 30; i++) {
 			Items.createRandomItem(this);
 		}
 
@@ -77,9 +77,9 @@ export class ArenaSplodeApp extends App {
 		return this._scene;
 	}
 
-	/** Gets the map. */
-	get map(): Map {
-		return this._map;
+	/** Gets the level. */
+	get level(): Level {
+		return this._level;
 	}
 
 	/** Adds an entity so that it will update. */
@@ -108,27 +108,47 @@ export class ArenaSplodeApp extends App {
 
 		// Do physics iteration for every entity.
 		for (const entity of this._entities) {
-			const newPosition = Birch.Vector2.pool.get();
-			newPosition.addMult(entity.position, 1, entity.velocity, deltaTime);
-			entity.setPosition(newPosition);
-			entity.setRotation(entity.rotation + entity.angularVelocity * deltaTime);
-			Birch.Vector2.pool.release(newPosition);
+			entity.doPhysics(deltaTime);
 		}
 
-		// // Handle entity-entity collisions.
-		// for (const entity1 of this._entities) {
-		// 	for (const entity2 of this._entities) {
-		// 	}
-		// }
+		// Get the entity-entity intersections.
+		const diff = Birch.Vector2.pool.get();
+		for (const entity1 of this._entities) {
+			for (const entity2 of this._entities) {
+				if (entity1 === entity2) {
+					continue;
+				}
+				diff.sub(entity1.position, entity2.position);
+				const radii = entity1.radius + entity2.radius;
+				if (diff.dot(diff) < radii * radii) { // Intersecting
+					if (!entity1.intersectingEntities.has(entity2)) {
+						entity1.intersectingEntities.add(entity2);
+						entity2.intersectingEntities.add(entity1);
+					}
+				}
+				else {
+					if (entity1.intersectingEntities.has(entity2)) {
+						entity1.intersectingEntities.remove(entity2);
+						entity2.intersectingEntities.remove(entity1);
+					}
+				}
+			}
+		}
+		Birch.Vector2.pool.release(diff);
 
 		// Handle entity-map collisions.
 		for (const entity of this._entities) {
-			this._map.handleOverlappingTiles(entity, deltaTime);
+			this._level.handleOverlappingTiles(entity);
 		}
 
 		// Do the pre-render for every entity.
 		for (const entity of this._entities) {
 			entity.preRender();
+		}
+
+		// Do the player viewport/camera pre-render.
+		for (const player of this._players) {
+			player.preRender();
 		}
 	}
 
@@ -174,7 +194,7 @@ export class ArenaSplodeApp extends App {
 
 	private _scene: Birch.Render.Scene;
 
-	private _map: Map;
+	private _level: Level;
 
 	private _players: Birch.FastOrderedSet<Player> = new Birch.FastOrderedSet();
 

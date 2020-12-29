@@ -2,6 +2,7 @@ import { ArenaSplodeApp } from 'app';
 import { Birch } from 'birch';
 import { Camera } from 'camera';
 import { Character } from 'entities/character';
+import { Entity } from 'entities/entity';
 
 const axisThreshold: number = 0.15;
 
@@ -25,12 +26,16 @@ export class Player {
 		// Create the character.
 		this._character = new Character(app.engine, app.scene);
 		app.addEntity(this._character);
-		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (app.map.size.x - 2), 1 + Math.random() * (app.map.size.y - 2)));
+		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (app.level.size.x - 2), 1 + Math.random() * (app.level.size.y - 2)));
 
 		// Create the camera.
 		this._camera = new Camera(this._viewport.stage);
 		this._camera.setEntityFocus(this._character);
-		app.addEntity(this._camera);
+
+		// Register the controller callbacks.
+		this._buttonCallback = this._buttonCallback.bind(this);
+		const controller = this._app.engine.input.getController(this._index)!;
+		controller.addButtonCallback(this._buttonCallback);
 	}
 
 	updateControls(): void {
@@ -52,7 +57,7 @@ export class Player {
 			// Update the velocity.
 			const velocity = this._character.velocity;
 			const newVelocity = Birch.Vector2.pool.get();
-			newVelocity.set(velocity.x + x * .25, velocity.y - y * .25);
+			newVelocity.set(velocity.x + x, velocity.y - y);
 			this._character.setVelocity(newVelocity);
 			Birch.Vector2.pool.release(newVelocity);
 
@@ -62,10 +67,14 @@ export class Player {
 		}
 	}
 
-	// Destroys this.
+	/** Does the prerender for the viewport and camera. */
+	preRender(): void {
+		this._camera.preRender();
+	}
+
+	/** Destroys this. */
 	destroy(): void {
 		this._app.removeEntity(this._character);
-		this._app.removeEntity(this._camera);
 		this._app.engine.viewports.destroy(this._viewport);
 	}
 
@@ -97,6 +106,50 @@ export class Player {
 	/** Gets the camera. */
 	get camera(): Camera {
 		return this._camera;
+	}
+
+	private _buttonCallback(_controllerIndex: number, buttonIndex: number, newValue: number): void {
+		// Use item.
+		if (buttonIndex === 0 && newValue === 1) {
+			this._character.useHeld();
+		}
+		// Pickup or drop an item.
+		else if (buttonIndex === 1 && newValue === 1) {
+			// Dropping.
+			if (this._character.holdingEntity !== undefined) {
+				const heldItem = this._character.holdingEntity;
+				// Set the item as not held.
+				this._character.setHoldingEntity(undefined);
+				heldItem.setHeldBy(undefined);
+				// Do the toss physics.
+				const newVelocity = Birch.Vector2.pool.get();
+				newVelocity.rot(Birch.Vector2.UnitX, this._character.rotation);
+				newVelocity.addMult(newVelocity, 5.0, this._character.velocity, 1);
+				heldItem.setVelocity(newVelocity);
+				Birch.Vector2.pool.release(newVelocity);
+			}
+			// Picking up.
+			else {
+				// Get the nearest entity intersecting with the character that can be picked up.
+				let nearestIntersectingEntity: Entity | undefined = undefined;
+				let nearestIntersectingDistance = Number.POSITIVE_INFINITY;
+				for (const intersectingEntity of this._character.intersectingEntities) {
+					// If it can be held and isn't currently held.
+					if (intersectingEntity.canBeHeld && intersectingEntity.heldBy === undefined) {
+						const distance = this._character.position.distance(intersectingEntity.position);
+						if (distance < nearestIntersectingDistance) {
+							nearestIntersectingDistance = distance;
+							nearestIntersectingEntity = intersectingEntity;
+						}
+					}
+				}
+				// If there was an valid holdable entity, do it.
+				if (nearestIntersectingEntity !== undefined) {
+					this._character.setHoldingEntity(nearestIntersectingEntity);
+					nearestIntersectingEntity.setHeldBy(this._character);
+				}
+			}
+		}
 	}
 
 	private _index: number;

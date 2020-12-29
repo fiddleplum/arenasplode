@@ -1,8 +1,8 @@
 import { Birch } from 'birch';
-import { Entity } from 'entity';
+import { Entity } from 'entities/entity';
 import { Tile } from 'tile';
 
-export class Map {
+export class Level {
 	constructor(engine: Birch.Engine, scene: Birch.Render.Scene) {
 		// Set the engine and scene.
 		this._engine = engine;
@@ -73,8 +73,17 @@ export class Map {
 		this._engine.renderer.meshes.destroy(this._mesh);
 	}
 
+	/** Gets the tile at the coords. */
+	getTile(tileCoord: Birch.Vector2Readonly): Tile | undefined {
+		const rowTile = this._tiles[tileCoord.y];
+		if (rowTile !== undefined) {
+			return rowTile[tileCoord.x];
+		}
+		return undefined;
+	}
+
 	/** Finds all tiles that overlap the entity and process the overlaps. */
-	handleOverlappingTiles(entity: Entity, deltaTime: number): void {
+	handleOverlappingTiles(entity: Entity): void {
 		const direction = Birch.Vector2.pool.get();
 		let numOverlappingTiles = 0;
 		// Get the integer bounds of the entity.
@@ -117,7 +126,7 @@ export class Map {
 		Birch.Sort.sort(this._overlappingTiles, TileOverlap.isLess);
 		// Call the appropriate onOverlap function for the entities.
 		for (let i = 0; i < numOverlappingTiles; i++) {
-			this._onTileOverlap(entity, this._overlappingTiles[i].tile, deltaTime);
+			this._onTileOverlap(entity, this._overlappingTiles[i].tile);
 		}
 	}
 
@@ -148,9 +157,9 @@ export class Map {
 	}
 
 	/** Process the overlap between an entity and tile. */
-	private _onTileOverlap(entity: Entity, tile: Birch.Vector2, deltaTime: number): void {
+	private _onTileOverlap(entity: Entity, tile: Birch.Vector2): void {
 		const direction = Birch.Vector2.pool.get();
-		const distance = this._getTileOverlap(direction, entity, tile);
+		// const distance = this._getTileOverlap(direction, entity, tile);
 		const tileType = this._tiles[tile.y][tile.x].type;
 		// If it's a wall, move it away.
 		if (tileType === Tile.Type.Wall) {
@@ -159,7 +168,6 @@ export class Map {
 			const offset = Birch.Vector2.pool.get();
 			tileBounds.set(tile.x, tile.y, 1, 1);
 			tileBounds.closest(offset, entity.position);
-
 			offset.sub(entity.position, offset);
 			const offsetNorm = offset.norm;
 			if (offsetNorm > 0 && entity.radius > offsetNorm) {
@@ -169,6 +177,7 @@ export class Map {
 				entity.setPosition(newPosition);
 				Birch.Vector2.pool.release(newPosition);
 				const newVelocity = Birch.Vector2.pool.get();
+				offset.normalize(offset);
 				newVelocity.addMult(entity.velocity, 1, offset, Math.max(0, -entity.velocity.dot(offset)));
 				entity.setVelocity(newVelocity);
 				Birch.Vector2.pool.release(newVelocity);
@@ -176,16 +185,7 @@ export class Map {
 			Birch.Vector2.pool.release(offset);
 			Birch.Rectangle.pool.release(tileBounds);
 		}
-		else if (tileType === Tile.Type.Floor) {
-			// Apply friction.
-			const frictionCoefficient = 0.05;
-			const newVelocity = Birch.Vector2.pool.get();
-			const friction = 1 - distance * Math.pow(frictionCoefficient, 60 * deltaTime);
-			newVelocity.mult(entity.velocity, friction);
-			entity.setVelocity(newVelocity);
-			entity.setAngularVelocity(entity.angularVelocity * friction);
-			Birch.Vector2.pool.release(newVelocity);
-		}
+		entity.onOverTile(this, tile);
 		Birch.Vector2.pool.release(direction);
 	}
 

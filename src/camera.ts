@@ -1,9 +1,8 @@
 import { Birch } from 'birch';
-import { Entity } from 'entity';
+import { Entity } from 'entities/entity';
 
-export class Camera extends Entity {
+export class Camera {
 	constructor(stage: Birch.Render.Stage) {
-		super();
 
 		this._stage = stage;
 
@@ -12,13 +11,8 @@ export class Camera extends Entity {
 			{ name: 'viewSize', type: Birch.Render.UniformGroup.Type.vec2 }
 		]);
 
-		this._stage.uniforms.setUniform('viewPosition', this.position.array);
-		this._stage.uniforms.setUniform('viewSize', this._viewSize.array);
-	}
-
-	setPosition(position: Birch.Vector2Readonly): void {
-		super.setPosition(position);
-		this._stage.uniforms.setUniform('viewPosition', this.position.array);
+		this._stage.uniforms.setUniform('viewPosition', [0, 0]);
+		this._stage.uniforms.setUniform('viewSize', [1, 1]);
 	}
 
 	get viewSize(): Birch.Vector2Readonly {
@@ -36,7 +30,7 @@ export class Camera extends Entity {
 
 	preRender(): void {
 		if (this._entityFocus !== undefined) {
-			this.setPosition(this._entityFocus.position);
+			this._stage.uniforms.setUniform('viewPosition', this._entityFocus.position.array);
 		}
 	}
 
