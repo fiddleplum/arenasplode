@@ -2,14 +2,24 @@ import { Birch } from 'birch';
 import { Entity } from './entity';
 import { ChainWand } from './chain_wand';
 import { Nuke } from './nuke';
-import { RocketLauncher } from './rocket_launcher';
+import { Gun } from './gun';
 import { Shell } from './shell';
 import { Sword } from './sword';
+import { ArenaSplodeApp } from 'app';
 
 export class Character extends Entity {
-	constructor(engine: Birch.Engine, scene: Birch.Render.Scene) {
-		super(engine, scene, 3);
+	constructor(app: ArenaSplodeApp) {
+		super(app, 3);
 		this.sprite.setTextureName('characters/bob');
+		this.setBounciness(0.2);
+	}
+
+	get playerIndex(): number | undefined {
+		return this._playerIndex;
+	}
+
+	setPlayerIndex(playerIndex: number): void {
+		this._playerIndex = playerIndex;
 	}
 
 	get holdingEntity(): Entity | undefined {
@@ -34,8 +44,8 @@ export class Character extends Entity {
 			this._heldOrientationOffset = Math.PI / 4;
 			this._heldRadiusOffset = this.radius * .5;
 		}
-		else if (this._holdingEntity instanceof RocketLauncher) {
-			// objectHeld.as<RocketLauncher>()->fire();
+		else if (this._holdingEntity instanceof Gun) {
+			this._holdingEntity.fire();
 		}
 		else if (this._holdingEntity instanceof Shell) {
 			// Ptr<Object> o = objectHeld;
@@ -84,10 +94,12 @@ export class Character extends Entity {
 		}
 	}
 
+	private _playerIndex: number | undefined;
+
 	private _holdingEntity: Entity | undefined;
 	private _heldOrientationOffset: number = 0;
 	private _heldRadiusOffset: number = 0;
 	private _swinging: boolean = false;
 
-	private _maxSpeed = 10;
+	private _maxSpeed = 20;
 }

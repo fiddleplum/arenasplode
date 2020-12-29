@@ -126,7 +126,7 @@ export class Level {
 		Birch.Sort.sort(this._overlappingTiles, TileOverlap.isLess);
 		// Call the appropriate onOverlap function for the entities.
 		for (let i = 0; i < numOverlappingTiles; i++) {
-			this._onTileOverlap(entity, this._overlappingTiles[i].tile);
+			entity.onOverTile(this, this._overlappingTiles[i].tile);
 		}
 	}
 
@@ -154,39 +154,6 @@ export class Level {
 	setSize(size: Birch.Vector2): void {
 		this._size.copy(size);
 		this._updateMap();
-	}
-
-	/** Process the overlap between an entity and tile. */
-	private _onTileOverlap(entity: Entity, tile: Birch.Vector2): void {
-		const direction = Birch.Vector2.pool.get();
-		// const distance = this._getTileOverlap(direction, entity, tile);
-		const tileType = this._tiles[tile.y][tile.x].type;
-		// If it's a wall, move it away.
-		if (tileType === Tile.Type.Wall) {
-			// Get closest point within tile to the circle of the entity.
-			const tileBounds = Birch.Rectangle.pool.get();
-			const offset = Birch.Vector2.pool.get();
-			tileBounds.set(tile.x, tile.y, 1, 1);
-			tileBounds.closest(offset, entity.position);
-			offset.sub(entity.position, offset);
-			const offsetNorm = offset.norm;
-			if (offsetNorm > 0 && entity.radius > offsetNorm) {
-				offset.mult(offset, (entity.radius - offsetNorm) / offsetNorm);
-				const newPosition = Birch.Vector2.pool.get();
-				newPosition.addMult(entity.position, 1, offset, 1);
-				entity.setPosition(newPosition);
-				Birch.Vector2.pool.release(newPosition);
-				const newVelocity = Birch.Vector2.pool.get();
-				offset.normalize(offset);
-				newVelocity.addMult(entity.velocity, 1, offset, Math.max(0, -entity.velocity.dot(offset)));
-				entity.setVelocity(newVelocity);
-				Birch.Vector2.pool.release(newVelocity);
-			}
-			Birch.Vector2.pool.release(offset);
-			Birch.Rectangle.pool.release(tileBounds);
-		}
-		entity.onOverTile(this, tile);
-		Birch.Vector2.pool.release(direction);
 	}
 
 	private _updateMap(): void {

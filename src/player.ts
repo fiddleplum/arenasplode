@@ -24,7 +24,7 @@ export class Player {
 		div.style.border = '1px solid white';
 
 		// Create the character.
-		this._character = new Character(app.engine, app.scene);
+		this._character = new Character(app);
 		app.addEntity(this._character);
 		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (app.level.size.x - 2), 1 + Math.random() * (app.level.size.y - 2)));
 

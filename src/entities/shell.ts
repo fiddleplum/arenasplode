@@ -1,10 +1,10 @@
-import { Birch } from 'birch';
+import { ArenaSplodeApp } from 'app';
 import { Entity } from './entity';
 
 export class Shell extends Entity {
 	/** The constructor. */
-	constructor(engine: Birch.Engine, scene: Birch.Render.Scene) {
-		super(engine, scene, 1);
+	constructor(app: ArenaSplodeApp) {
+		super(app, 1);
 		this.setCanBeHeld(true);
 		this.sprite.setTextureName('items/shell');
 	}

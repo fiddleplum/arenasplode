@@ -1,15 +1,17 @@
+import { ArenaSplodeApp } from 'app';
 import { Birch } from 'birch';
 import { Character } from 'entities/character';
 import { Level } from 'level';
 import { Sprite } from 'sprite';
+import { Tile } from 'tile';
 import { FastOrderedSet } from '../../../birch/src/internal';
 
 export class Entity {
 	/** The constructor.
 	  * @param level - The map is at 0, items are at 1, held items are at 2, players are at 3. */
-	constructor(engine: Birch.Engine, scene: Birch.Render.Scene, level: number) {
-		this._engine = engine;
-		this._sprite = new Sprite(engine, scene, level);
+	constructor(app: ArenaSplodeApp, level: number) {
+		this._app = app;
+		this._sprite = new Sprite(app.engine, app.scene, level);
 	}
 
 	/** The destructor. */
@@ -61,6 +63,12 @@ export class Entity {
 	/** Sets the velocity in units per second. */
 	setVelocity(velocity: Birch.Vector2Readonly): void {
 		this._velocity.copy(velocity);
+		if (this instanceof Character) {
+			console.log(this._velocity.norm + '');
+		}
+		if (this._velocity.normSq > 12 * 12) {
+			this._velocity.setNorm(12);
+		}
 	}
 
 	/** Gets the angular velocity in radians per second. */
@@ -103,14 +111,14 @@ export class Entity {
 		this._friction = friction;
 	}
 
-	/** Gets the spring factor. When doing collision physics, this is the spring coefficient. */
-	get springFactor(): number {
-		return this._springFactor;
+	/** Gets the bounciness. */
+	get bounciness(): number {
+		return this._bounciness;
 	}
 
-	/** Sets the spring factor. When doing collision physics, this is the spring coefficient. */
-	setSpringFactor(springFactor: number): void {
-		this._springFactor = springFactor;
+	/** Sets the bounciness. */
+	setBounciness(bounciness: number): void {
+		this._bounciness = bounciness;
 	}
 
 	/** Gets the character holding this, if any. */
@@ -138,9 +146,9 @@ export class Entity {
 		return this._sprite;
 	}
 
-	/** Gets the engine. */
-	protected get engine(): Birch.Engine {
-		return this._engine;
+	/** Gets the app. */
+	protected get app(): ArenaSplodeApp {
+		return this._app;
 	}
 
 	/** The update function. */
@@ -180,7 +188,55 @@ export class Entity {
 	onTouch(_entity: Entity): void {
 	}
 
-	onOverTile(_level: Level, _tileCoords: Birch.Vector2): void {
+	onOverTile(level: Level, tileCoords: Birch.Vector2): void {
+		// If it's a wall, move it away.
+		const tile = level.getTile(tileCoords);
+		if (tile === undefined) {
+			return;
+		}
+		if (tile.type === Tile.Type.Wall) {
+			const offset = Birch.Vector2.pool.get();
+			this.getClosestPoint(offset, tileCoords);
+			offset.sub(this.position, offset);
+			const offsetNorm = offset.norm;
+			if (offsetNorm > 0 && this.radius > offsetNorm) {
+				offset.mult(offset, (this.radius - offsetNorm) / offsetNorm);
+				const newPosition = Birch.Vector2.pool.get();
+				newPosition.addMult(this.position, 1, offset, 1);
+				this.setPosition(newPosition);
+				Birch.Vector2.pool.release(newPosition);
+				const newVelocity = Birch.Vector2.pool.get();
+				offset.normalize(offset);
+				newVelocity.addMult(this.velocity, 1, offset, Math.max(0, -(1 + this._bounciness) * this.velocity.dot(offset)));
+				this.setVelocity(newVelocity);
+				Birch.Vector2.pool.release(newVelocity);
+			}
+			Birch.Vector2.pool.release(offset);
+		}
+	}
+
+	protected getClosestPoint(closestPoint: Birch.Vector2, tileCoords: Birch.Vector2): void {
+		if (this.position.x < tileCoords.x || this.position.x > tileCoords.x + 1
+		|| this.position.y < tileCoords.y || this.position.y > tileCoords.y + 1) {
+			const tileBounds = Birch.Rectangle.pool.get();
+			tileBounds.set(tileCoords.x, tileCoords.y, 1, 1);
+			tileBounds.closest(closestPoint, this.position);
+			Birch.Rectangle.pool.release(tileBounds);
+		}
+		else {
+			if (this.position.x < tileCoords.x + 0.5 && this.position.x < -Math.abs(tileCoords.y + 0.5 - this.position.y)) {
+				closestPoint.setX(this.position.x + (this.position.x - tileCoords.x));
+			}
+			else if (this.position.x > tileCoords.x + 0.5 && this.position.x > Math.abs(tileCoords.y + 0.5 - this.position.y)) {
+				closestPoint.setX(this.position.x - (tileCoords.x + 1 - this.position.x));
+			}
+			if (this.position.y < tileCoords.y + 0.5 && this.position.y < -Math.abs(tileCoords.x + 0.5 - this.position.x)) {
+				closestPoint.setY(this.position.y + (this.position.y - tileCoords.y));
+			}
+			else if (this.position.y > tileCoords.y + 0.5 && this.position.y > Math.abs(tileCoords.x + 0.5 - this.position.x)) {
+				closestPoint.setY(this.position.y - (tileCoords.y + 1 - this.position.y));
+			}
+		}
 	}
 
 	// FRAME AND FRAME DERIVATIVES
@@ -212,7 +268,7 @@ export class Entity {
 	private _friction = 16;
 
 	/** When doing collision physics, this is the spring coefficient. */
-	private _springFactor = 0;
+	private _bounciness = 0;
 
 	// INTERACTION
 
@@ -227,7 +283,7 @@ export class Entity {
 
 	// SYSTEMS
 
-	private _engine: Birch.Engine;
+	private _app: ArenaSplodeApp;
 
 	// SPRITE
 
