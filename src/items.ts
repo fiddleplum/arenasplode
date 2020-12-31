@@ -30,6 +30,7 @@ export class Items {
 				const item = new itemType(app);
 				app.addEntity(item);
 				item.setPosition(new Birch.Vector2(1 + Math.random() * (app.level.size.x - 2), 1 + Math.random() * (app.level.size.y - 2)));
+				break;
 			}
 			else {
 				randomWeight -= entry[1];
