@@ -45,6 +45,7 @@ export class Sprite {
 		this._model = this._engine.renderer.models.create();
 		this._model.mesh = Sprite._mesh;
 		this._model.shader = Sprite._shader;
+		this._model.depth = level;
 
 		// Set the model's uniforms.
 		this._model.uniforms.setUniformTypes([{

@@ -22,7 +22,7 @@
 		"  vec2 worldPosition = vec2(position.x + scale.x * a_position.x * cos(rotation) - scale.y * a_position.y * sin(rotation),",
 		"                            position.y + scale.y * a_position.y * cos(rotation) + scale.x * a_position.x * sin(rotation));",
 		"  vec2 viewPosition = worldPosition - viewPosition;",
-		"  gl_Position = vec4(viewPosition / viewSize, level / 3.0, 1.0);",
+		"  gl_Position = vec4(viewPosition / viewSize, 1.0, 1.0);",
 		"  v_uv = a_uv;",
 		"}"],
 	"fragment": [
