@@ -135,7 +135,7 @@ export class Level {
 		// Get closest point within tile to the circle of the entity.
 		const tileBounds = Birch.Rectangle.pool.get();
 		tileBounds.set(tile.x, tile.y, 1, 1);
-		tileBounds.closest(outDirection, entity.position);
+		tileBounds.closest(outDirection, entity.position, false);
 		Birch.Rectangle.pool.release(tileBounds);
 		outDirection.sub(entity.position, outDirection);
 		const distance = Math.max(entity.radius - outDirection.norm, 0);

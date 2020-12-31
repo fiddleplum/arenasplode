@@ -63,9 +63,6 @@ export class Entity {
 	/** Sets the velocity in units per second. */
 	setVelocity(velocity: Birch.Vector2Readonly): void {
 		this._velocity.copy(velocity);
-		if (this instanceof Character) {
-			console.log(this._velocity.norm + '');
-		}
 		if (this._velocity.normSq > 12 * 12) {
 			this._velocity.setNorm(12);
 		}
@@ -216,27 +213,10 @@ export class Entity {
 	}
 
 	protected getClosestPoint(closestPoint: Birch.Vector2, tileCoords: Birch.Vector2): void {
-		if (this.position.x < tileCoords.x || this.position.x > tileCoords.x + 1
-		|| this.position.y < tileCoords.y || this.position.y > tileCoords.y + 1) {
-			const tileBounds = Birch.Rectangle.pool.get();
-			tileBounds.set(tileCoords.x, tileCoords.y, 1, 1);
-			tileBounds.closest(closestPoint, this.position);
-			Birch.Rectangle.pool.release(tileBounds);
-		}
-		else {
-			if (this.position.x < tileCoords.x + 0.5 && this.position.x < -Math.abs(tileCoords.y + 0.5 - this.position.y)) {
-				closestPoint.setX(this.position.x + (this.position.x - tileCoords.x));
-			}
-			else if (this.position.x > tileCoords.x + 0.5 && this.position.x > Math.abs(tileCoords.y + 0.5 - this.position.y)) {
-				closestPoint.setX(this.position.x - (tileCoords.x + 1 - this.position.x));
-			}
-			if (this.position.y < tileCoords.y + 0.5 && this.position.y < -Math.abs(tileCoords.x + 0.5 - this.position.x)) {
-				closestPoint.setY(this.position.y + (this.position.y - tileCoords.y));
-			}
-			else if (this.position.y > tileCoords.y + 0.5 && this.position.y > Math.abs(tileCoords.x + 0.5 - this.position.x)) {
-				closestPoint.setY(this.position.y - (tileCoords.y + 1 - this.position.y));
-			}
-		}
+		const tileBounds = Birch.Rectangle.pool.get();
+		tileBounds.set(tileCoords.x, tileCoords.y, 1, 1);
+		tileBounds.closest(closestPoint, this.position, false);
+		Birch.Rectangle.pool.release(tileBounds);
 	}
 
 	// FRAME AND FRAME DERIVATIVES
