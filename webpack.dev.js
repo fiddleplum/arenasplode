@@ -3,5 +3,5 @@ const base = require('./webpack.base.js');
 
 module.exports = merge.merge(base, {
 	mode: 'development',
-	devtool: 'cheap-source-map'
+	devtool: 'source-map'
 });

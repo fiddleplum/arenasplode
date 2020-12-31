@@ -75,7 +75,7 @@ export class Sprite {
 	/** The destructor. */
 	destroy(): void {
 		this._scene.models.remove(this._model);
-		this._model.destroy();
+		this._engine.renderer.models.destroy(this._model);
 		this._engine.renderer.textures.destroy(this._texture);
 
 		Sprite._count -= 1;

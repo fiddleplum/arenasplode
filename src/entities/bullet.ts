@@ -9,4 +9,10 @@ export class Bullet extends Projectile {
 		this.setBounciness(0.75);
 		this.sprite.setTextureName('items/bullet');
 	}
+
+	update(_deltaTime: number): void {
+		if (this.velocity.normSq < 0.1) {
+			this.app.removeEntity(this);
+		}
+	}
 }
