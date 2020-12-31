@@ -4,14 +4,6 @@ import { Level } from 'level';
 import { Player } from 'player';
 import { Entity } from 'entities/entity';
 import { Items } from 'items';
-// import { PlayerControlSystem } from 'systems/player_control_system';
-// import { CameraCenteringSystem } from 'systems/camera_centering_system';
-// import { PhysicsSystem } from 'systems/physics_system';
-// import { ItemSystem } from 'systems/item_system';
-// import { PrerenderSystem } from 'systems/prerender_system';
-// import { PlayerSystem } from 'systems/player_system';
-// import { Frame2DSpriteSystem } from 'systems/frame_2d_sprite_system';
-// import { OverlapSystem } from 'systems/overlap_system';
 
 export class ArenaSplodeApp extends App {
 	/** Constructs the app. */

@@ -5,6 +5,7 @@ export class Projectile extends Entity {
 	/** The constructor. */
 	constructor(app: ArenaSplodeApp) {
 		super(app, 2);
+		this.setFriction(1);
 		this.setCanBeHeld(false);
 	}
 

@@ -245,7 +245,7 @@ export class Entity {
 	private _mass = 1;
 
 	/** The friction of the entity. */
-	private _friction = 16;
+	private _friction = 32;
 
 	/** When doing collision physics, this is the spring coefficient. */
 	private _bounciness = 0;
