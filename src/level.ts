@@ -132,7 +132,6 @@ export class Level {
 
 	/** Returns the distance and the direction of overlap between the entity and the tile. */
 	private _getTileOverlap(outDirection: Birch.Vector2, entity: Entity, tile: Birch.Vector2): number {
-		// Get closest point within tile to the circle of the entity.
 		const tileBounds = Birch.Rectangle.pool.get();
 		tileBounds.set(tile.x, tile.y, 1, 1);
 		tileBounds.closest(outDirection, entity.position, false);

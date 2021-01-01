@@ -193,13 +193,18 @@ export class Entity {
 		}
 		if (tile.type === Tile.Type.Wall) {
 			const offset = Birch.Vector2.pool.get();
-			this.getClosestPoint(offset, tileCoords);
+			const contains = this.getClosestPoint(offset, tileCoords);
 			offset.sub(this.position, offset);
 			const offsetNorm = offset.norm;
-			if (offsetNorm > 0 && this.radius > offsetNorm) {
-				offset.mult(offset, (this.radius - offsetNorm) / offsetNorm);
+			if (offsetNorm > 0) {
+				if (contains) {
+					offset.mult(offset, (-this.radius - offsetNorm) / offsetNorm);
+				}
+				else {
+					offset.mult(offset, (this.radius - offsetNorm) / offsetNorm);
+				}
 				const newPosition = Birch.Vector2.pool.get();
-				newPosition.addMult(this.position, 1, offset, 1);
+				newPosition.add(this.position, offset);
 				this.setPosition(newPosition);
 				Birch.Vector2.pool.release(newPosition);
 				const newVelocity = Birch.Vector2.pool.get();
@@ -212,11 +217,13 @@ export class Entity {
 		}
 	}
 
-	protected getClosestPoint(closestPoint: Birch.Vector2, tileCoords: Birch.Vector2): void {
+	/** Gets the tile edge closest to the entity. Returns true if the tile contains the entity position. */
+	protected getClosestPoint(closestPoint: Birch.Vector2, tileCoords: Birch.Vector2): boolean {
 		const tileBounds = Birch.Rectangle.pool.get();
 		tileBounds.set(tileCoords.x, tileCoords.y, 1, 1);
-		tileBounds.closest(closestPoint, this.position, false);
+		const contains = tileBounds.closest(closestPoint, this.position, false);
 		Birch.Rectangle.pool.release(tileBounds);
+		return contains;
 	}
 
 	// FRAME AND FRAME DERIVATIVES
