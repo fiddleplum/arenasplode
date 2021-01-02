@@ -127,7 +127,9 @@ export class ArenaSplodeApp extends App {
 	}
 
 	private _onStart(): void {
+		// Change up the UI.
 		this.removeElement(this.element('start', HTMLDivElement));
+		this.element('title', HTMLDivElement).innerHTML = `<img src="assets/sprites/title.png"></img>`;
 
 		// Add the callback for when controllers are connected or disconnected.
 		this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
@@ -203,9 +205,12 @@ export class ArenaSplodeApp extends App {
 }
 
 ArenaSplodeApp.html = /* html */`
-	<div class="title">ArenaSplode!</div>	
+	<div id="title" class="title"></div>	
 	<div class='birch'></div>
-	<div id="start" class="start"><button onclick="{$_onStart$}">Start</button></div>
+	<div id="start" class="start">
+		<img src="assets/sprites/title.png"></img>
+		<button onclick="{$_onStart$}">Start</button>
+	</div>
 	<div id="loading" class="loading"><span>Loading...</span></div>
 	`;
 
@@ -222,9 +227,11 @@ ArenaSplodeApp.css = /* css */`
 	.title {
 		grid-area: header;
 		text-align: center;
-		font-size: 2rem;
+	}
+	.title img {
 		line-height: 3rem;
-		height: 3rem;
+		height: 2.5rem;
+		margin: .25rem 0;
 	}
 	.birch {
 		grid-area: main;
@@ -237,6 +244,7 @@ ArenaSplodeApp.css = /* css */`
 		height: calc(100% - 2rem);
 		background: black;
 		z-index: 1;
+		text-align: center;
 	}
 	.loading span {
 		position: absolute;
@@ -246,16 +254,23 @@ ArenaSplodeApp.css = /* css */`
 		font-size: 10rem;
 		color: white;
 	}
+	.start {
+		display: grid;
+		grid-template-rows: 1fr 1fr;
+	}
+	.start img {
+		margin: auto;
+		width: 50%;
+		height: auto;
+	}
 	.start button {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		font-size: 10rem;
+		margin: auto;
+		width: 25rem;
+		font-size: 5rem;
 		color: white;
 		background: darkgreen;
 		border: 4px solid white;
-		border-radius: 2rem;
+		border-radius: 6rem;
 	}
 	.viewports {
 		left: 0;
