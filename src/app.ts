@@ -11,7 +11,7 @@ export class ArenaSplodeApp extends App {
 		super();
 
 		// Create the engine and scene.
-		this._engine = new Birch.Engine(document.querySelector('div') as HTMLDivElement);
+		this._engine = new Birch.Engine(document.querySelector('.birch') as HTMLDivElement);
 		this._scene = this._engine.renderer.scenes.create();
 
 		// Create the map.
@@ -26,31 +26,35 @@ export class ArenaSplodeApp extends App {
 		this._adjustViewports = this._adjustViewports.bind(this);
 		window.addEventListener('resize', this._adjustViewports);
 
-		// Add the callback for when controllers are connected or disconnected.
-		this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
-			if (connected) {
-				console.log(`Player ${index + 1} connected.`);
-				const oldPlayer = this._players.getIndex(index);
-				// Clean out any old player if it's still there.
-				if (oldPlayer !== undefined) {
-					oldPlayer.destroy();
-				}
-				// Add new player.
-				this._players.add(new Player(index, this));
-			}
-			else {
-				console.log(`Player ${index + 1} disconnected.`);
-				const player = this._players.getIndex(index);
-				if (player !== undefined) {
-					player.destroy();
-					this._players.remove(player);
-				}
-			}
-			this._adjustViewports();
-		});
-
 		// Add the update callback.
 		this._engine.addUpdateCallback(this._update.bind(this));
+
+		// Setup the character sprites.
+		Player.setupCharacterSpriteList().then(() => {
+			console.log('here');
+			// Add the callback for when controllers are connected or disconnected.
+			this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
+				if (connected) {
+					console.log(`Player ${index + 1} connected.`);
+					const oldPlayer = this._players.getIndex(index);
+					// Clean out any old player if it's still there.
+					if (oldPlayer !== undefined) {
+						oldPlayer.destroy();
+					}
+					// Add new player.
+					this._players.add(new Player(index, this));
+				}
+				else {
+					console.log(`Player ${index + 1} disconnected.`);
+					const player = this._players.getIndex(index);
+					if (player !== undefined) {
+						player.destroy();
+						this._players.remove(player);
+					}
+				}
+				this._adjustViewports();
+			});
+		});
 	}
 
 	/** Destructs the app. */
@@ -194,22 +198,53 @@ export class ArenaSplodeApp extends App {
 }
 
 ArenaSplodeApp.html = /* html */`
+	<div class="title">ArenaSplode!</div>	
 	<div class='birch'></div>
-	<!-- <div id="menu">
-		<div id="title">
-
-		</div>	
-	</div> -->
 	`;
 
 ArenaSplodeApp.css = /* css */`
-	html, body, .ArenaSplodeApp {
+	html, body {
+		width: 100%;
+		height: 100vh;
+		background: black;
+		color: white;
+		display: grid;
+		grid-template-rows: 3rem 1fr;
+		grid-template-areas: "header" "main";
+	}
+	.title {
+		grid-area: header;
+		text-align: center;
+		font-size: 2rem;
+		line-height: 3rem;
+		height: 3rem;
+	}
+	.birch {
+		grid-area: main;
+		width: 100%;
+		height: calc(100% - 2rem);
+	}
+	.viewports {
+		left: 0;
+		top: 0;
 		width: 100%;
 		height: 100%;
 	}
-	body > .birch {
-		width: 100%;
-		height: 100%;
+	.viewports > div {
+		border: 1px solid white;
+	}
+	.character-selection {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		overflow: hidden;
+	}
+	.character {
+		border: 1px solid transparent;
+	}
+	.character.selected { 
+		border: 1px solid white;
 	}
 	`;
 

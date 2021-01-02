@@ -8,9 +8,9 @@ import { Sword } from './sword';
 import { ArenaSplodeApp } from 'app';
 
 export class Character extends Entity {
-	constructor(app: ArenaSplodeApp) {
+	constructor(app: ArenaSplodeApp, name: string) {
 		super(app, 3);
-		this.sprite.setTextureName('characters/bob');
+		this.sprite.setTextureName('characters/' + name);
 		this.setBounciness(0.2);
 	}
 

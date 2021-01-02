@@ -1,0 +1,10 @@
+arrow
+bob
+bullet
+ghost
+john
+miss_pacman
+pacman
+rocket
+spongebob
+star
