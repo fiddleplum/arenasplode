@@ -31,29 +31,7 @@ export class ArenaSplodeApp extends App {
 
 		// Setup the character sprites.
 		Player.setupCharacterSpriteList().then(() => {
-			console.log('here');
-			// Add the callback for when controllers are connected or disconnected.
-			this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
-				if (connected) {
-					console.log(`Player ${index + 1} connected.`);
-					const oldPlayer = this._players.getIndex(index);
-					// Clean out any old player if it's still there.
-					if (oldPlayer !== undefined) {
-						oldPlayer.destroy();
-					}
-					// Add new player.
-					this._players.add(new Player(index, this));
-				}
-				else {
-					console.log(`Player ${index + 1} disconnected.`);
-					const player = this._players.getIndex(index);
-					if (player !== undefined) {
-						player.destroy();
-						this._players.remove(player);
-					}
-				}
-				this._adjustViewports();
-			});
+			this.removeElement(this.element('loading', HTMLDivElement));
 		});
 	}
 
@@ -148,6 +126,33 @@ export class ArenaSplodeApp extends App {
 		}
 	}
 
+	private _onStart(): void {
+		this.removeElement(this.element('start', HTMLDivElement));
+
+		// Add the callback for when controllers are connected or disconnected.
+		this._engine.input.setControllerConnectedCallback((index: number, connected: boolean) => {
+			if (connected) {
+				console.log(`Player ${index + 1} connected.`);
+				const oldPlayer = this._players.getIndex(index);
+				// Clean out any old player if it's still there.
+				if (oldPlayer !== undefined) {
+					oldPlayer.destroy();
+				}
+				// Add new player.
+				this._players.add(new Player(index, this));
+			}
+			else {
+				console.log(`Player ${index + 1} disconnected.`);
+				const player = this._players.getIndex(index);
+				if (player !== undefined) {
+					player.destroy();
+					this._players.remove(player);
+				}
+			}
+			this._adjustViewports();
+		});
+	}
+
 	/** Make the viewports the optimal proportions. */
 	private _adjustViewports(): void {
 		const numPlayers = this._players.size();
@@ -200,6 +205,8 @@ export class ArenaSplodeApp extends App {
 ArenaSplodeApp.html = /* html */`
 	<div class="title">ArenaSplode!</div>	
 	<div class='birch'></div>
+	<div id="start" class="start"><button onclick="{$_onStart$}">Start</button></div>
+	<div id="loading" class="loading"><span>Loading...</span></div>
 	`;
 
 ArenaSplodeApp.css = /* css */`
@@ -223,6 +230,32 @@ ArenaSplodeApp.css = /* css */`
 		grid-area: main;
 		width: 100%;
 		height: calc(100% - 2rem);
+	}
+	.start, .loading {
+		grid-area: main;
+		width: 100%;
+		height: calc(100% - 2rem);
+		background: black;
+		z-index: 1;
+	}
+	.loading span {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-size: 10rem;
+		color: white;
+	}
+	.start button {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-size: 10rem;
+		color: white;
+		background: darkgreen;
+		border: 4px solid white;
+		border-radius: 2rem;
 	}
 	.viewports {
 		left: 0;
