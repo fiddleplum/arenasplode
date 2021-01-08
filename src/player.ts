@@ -4,7 +4,7 @@ import { Camera } from 'camera';
 import { Character } from 'entities/character';
 import { Entity } from 'entities/entity';
 
-const axisThreshold: number = 0.15;
+const axisThreshold: number = 0.25;
 
 export class Player {
 	// Constructs this.
@@ -31,6 +31,7 @@ export class Player {
 		const div = this._viewport.div;
 		div.innerHTML = html;
 		const divChild = div.firstElementChild as HTMLDivElement;
+		divChild.style.width = (66 * divChild.children.length) + 'px';
 		divChild.style.marginLeft = Math.floor(66 * (-.5 + divChild.children.length / 2)) + 'px';
 	}
 

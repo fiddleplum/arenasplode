@@ -2,13 +2,15 @@ import { ArenaSplodeApp } from 'app';
 import { Birch } from 'birch';
 import { ChainWand } from 'entities/chain_wand';
 import { Nuke } from 'entities/nuke';
-import { Gun } from 'entities/gun';
 import { Shell } from 'entities/shell';
 import { Sword } from 'entities/sword';
+import { BulletGun } from 'entities/bullet_gun';
+import { BombGun } from 'entities/bomb_gun';
 
 const itemWeights = new Map([
 	[Sword, 1],
-	[Gun, 1],
+	[BulletGun, 1],
+	[BombGun, 1],
 	[Shell, 1],
 	[Nuke, 1],
 	[ChainWand, 1]

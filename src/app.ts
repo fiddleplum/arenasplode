@@ -285,6 +285,7 @@ ArenaSplodeApp.css = /* css */`
 		position: absolute;
 		top: 50%;
 		left: 50%;
+		height: 66px;
 		transform: translate(-50%, -50%);
 		overflow: hidden;
 	}
