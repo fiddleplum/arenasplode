@@ -235,8 +235,6 @@ ArenaSplodeApp.css = /* css */`
 	}
 	.birch {
 		grid-area: main;
-		width: 100%;
-		height: calc(100% - 2rem);
 	}
 	.start, .loading {
 		grid-area: main;
