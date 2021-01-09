@@ -85,6 +85,11 @@ export class Sprite {
 		}
 	}
 
+	/** Sets the level. The map is at 0, items are at 1, held items are at 2, characters are at 3. */
+	setLevel(level: number): void {
+		this._model.depth = level;
+	}
+
 	/** Sets the position. */
 	setPosition(position: Birch.Vector2Readonly): void {
 		this._model.uniforms.setUniform('position', position.array);

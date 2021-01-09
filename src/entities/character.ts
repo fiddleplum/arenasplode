@@ -6,20 +6,43 @@ import { Gun } from './gun';
 import { Shell } from './shell';
 import { Sword } from './sword';
 import { ArenaSplodeApp } from 'app';
+import { Gib } from './gib';
 
 export class Character extends Entity {
-	constructor(app: ArenaSplodeApp, name: string) {
+	constructor(app: ArenaSplodeApp, playerIndex: number, name: string) {
 		super(app, 3);
-		this.sprite.setTextureName('characters/' + name);
-		this.setBounciness(0.2);
-	}
-
-	get playerIndex(): number | undefined {
-		return this._playerIndex;
-	}
-
-	setPlayerIndex(playerIndex: number): void {
+		// Set the player index.
 		this._playerIndex = playerIndex;
+
+		// Set the sprite texture.
+		this.sprite.setTextureName('characters/' + name);
+
+		// Set up physical properties.
+		this.setBounciness(0.2);
+
+		// Set the file name for the gib pieces.
+		this._gibName = `characters/${name}`;
+
+		// Load the sounds.
+		for (let i = 0; i < 3; i++) {
+			this.app.engine.soundSystem.load(`assets/sounds/hurt${i}.ogg`);
+			this.app.engine.soundSystem.load(`assets/sounds/death${i}.ogg`);
+		}
+		this.app.engine.soundSystem.load(`assets/sounds/multikill.ogg`);
+	}
+
+	destroy(): void {
+		// Unload the sounds.
+		for (let i = 0; i < 3; i++) {
+			this.app.engine.soundSystem.unload(`assets/sounds/hurt${i}.ogg`);
+			this.app.engine.soundSystem.unload(`assets/sounds/death${i}.ogg`);
+		}
+		this.app.engine.soundSystem.unload(`assets/sounds/multikill.ogg`);
+		super.destroy();
+	}
+
+	get playerIndex(): number {
+		return this._playerIndex;
 	}
 
 	get holdingEntity(): Entity | undefined {
@@ -36,6 +59,13 @@ export class Character extends Entity {
 
 	protected setMaxSpeed(maxSpeed: number): void {
 		this._maxSpeed = maxSpeed;
+	}
+
+	incNumKills(): void {
+		this._numKills += 1;
+		if (this._numKills % 3 == 0) {
+			this.app.engine.soundSystem.play(`assets/sounds/multikill.ogg`);
+		}
 	}
 
 	useHeld(): void {
@@ -58,6 +88,67 @@ export class Character extends Entity {
 		}
 		else if (this._holdingEntity instanceof Nuke) {
 			// objectHeld.as<Nuke>()->explode(getPlayer()->getNumber());
+		}
+	}
+
+	harm(playerIndex: number, amount: number): void {
+		if (this._health === 0) {
+			return;
+		}
+		if (amount > this._health) {
+			amount = this._health;
+		}
+		this._health -= amount;
+		if (Date.now() / 1000 - this._harmSoundTime > .125) {
+			const variant = Math.floor(3 * Math.random());
+			this.app.engine.soundSystem.play(`assets/sounds/hurt${variant}.ogg`);
+			this._harmSoundTime = Date.now() / 1000;
+		}
+		if (playerIndex !== undefined && playerIndex !== this._playerIndex) {
+			const otherPlayer = this.app.getPlayer(playerIndex)!;
+			otherPlayer.addScore(amount);
+			if (this._health <= 0) {
+				otherPlayer.addScore(10);
+				otherPlayer.character?.incNumKills();
+			}
+		}
+		if (this._health <= 0) {
+			// Play the death sound.
+			const variant = Math.floor(3 * Math.random());
+			this.app.engine.soundSystem.play(`assets/sounds/death${variant}.ogg`);
+			// Drop any item held.
+			this.dropHeldItem();
+			// Add some gibs.
+			for (let i = 0; i < 4; i++) {
+				const gib = new Gib(this.app, this._gibName);
+				gib.setScale(this.scale);
+				gib.setPosition(this.position);
+				const gibVelocity = Birch.Vector2.pool.get();
+				gibVelocity.setX(15 * (Math.random() * 2 - 1));
+				gibVelocity.setY(15 * (Math.random() * 2 - 1));
+				gib.setVelocity(gibVelocity);
+				Birch.Vector2.pool.release(gibVelocity);
+				gib.setAngularVelocity(15 * (Math.random() * 2 - 1));
+				this.app.addEntity(gib);
+			}
+			// Notify the player that the character died.
+			this.app.getPlayer(this._playerIndex)!.die();
+		}
+	}
+
+	/** Drop a held item. */
+	dropHeldItem(): void {
+		if (this._holdingEntity !== undefined) {
+			const heldItem = this._holdingEntity;
+			// Set the item as not held.
+			this._holdingEntity = undefined;
+			heldItem.setHeldBy(undefined);
+			// Do the toss physics.
+			const newVelocity = Birch.Vector2.pool.get();
+			newVelocity.rot(Birch.Vector2.UnitX, this.rotation);
+			newVelocity.addMult(newVelocity, 5.0, this.velocity, 1);
+			heldItem.setVelocity(newVelocity);
+			Birch.Vector2.pool.release(newVelocity);
 		}
 	}
 
@@ -94,7 +185,7 @@ export class Character extends Entity {
 		}
 	}
 
-	private _playerIndex: number | undefined;
+	private _playerIndex: number;
 
 	private _holdingEntity: Entity | undefined;
 	private _heldOrientationOffset: number = 0;
@@ -102,4 +193,9 @@ export class Character extends Entity {
 	private _swinging: boolean = false;
 
 	private _maxSpeed = 20;
+
+	private _health: number = 100;
+	private _harmSoundTime: number = 0;
+	private _numKills: number = 0;
+	private _gibName: string = '';
 }

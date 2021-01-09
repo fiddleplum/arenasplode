@@ -17,6 +17,14 @@ export class ArenaSplodeApp extends App {
 		// Create the map.
 		this._level = new Level(this._engine, this._scene);
 
+		// Load the sounds.
+		for (let i = 0; i < 4; i++) {
+			this._engine.soundSystem.load(`assets/sounds/announcer${i}.ogg`);
+		}
+		this._engine.soundSystem.load(`assets/sounds/announcerScore.ogg`);
+		this._engine.soundSystem.load(`assets/sounds/announcerSuper.ogg`);
+		this._engine.soundSystem.load(`assets/sounds/announcerWeapon.ogg`);
+
 		// Create the initial items.
 		for (let i = 0; i < this._level.size.x * this._level.size.y / 30; i++) {
 			Items.createRandomItem(this);
@@ -56,13 +64,18 @@ export class ArenaSplodeApp extends App {
 		return this._level;
 	}
 
+	/** Gets the player. */
+	getPlayer(index: number): Player | undefined {
+		return this._players.getIndex(index);
+	}
+
 	/** Adds an entity so that it will update. */
 	addEntity(entity: Entity): void {
 		this._entities.add(entity);
 	}
 
 	/** Removes an entity so that it will stop updating. */
-	removeEntity(entity: Entity): void {
+	removeAndDestroyEntity(entity: Entity): void {
 		if (this._entities.remove(entity)) {
 			entity.destroy();
 		}
@@ -109,6 +122,11 @@ export class ArenaSplodeApp extends App {
 			}
 		}
 		Birch.Vector2.pool.release(diff);
+		for (const entity of this._entities) {
+			for (const otherEntity of entity.intersectingEntities) {
+				entity.onTouch(otherEntity);
+			}
+		}
 
 		// Handle entity-map collisions.
 		for (const entity of this._entities) {

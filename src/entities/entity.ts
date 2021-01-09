@@ -126,6 +126,12 @@ export class Entity {
 	/** Sets the character holding this, if any. */
 	setHeldBy(character: Character | undefined): void {
 		this._heldBy = character;
+		if (character !== undefined) {
+			this.sprite.setLevel(2);
+		}
+		else {
+			this.sprite.setLevel(1);
+		}
 	}
 
 	/** Gets whether the entity can be picked up. */
@@ -224,6 +230,16 @@ export class Entity {
 		const contains = tileBounds.closest(closestPoint, this._position, false);
 		Birch.Rectangle.pool.release(tileBounds);
 		return contains;
+	}
+
+	pushBack(entity: Entity, amount: number): void {
+		const push = Birch.Vector2.pool.get();
+		push.sub(this._position, entity.position);
+		push.setNorm(amount);
+		this._velocity.add(this._velocity, push);
+		push.addMult(entity.velocity, 1, push, -1);
+		entity.setVelocity(push);
+		Birch.Vector2.pool.release(push);
 	}
 
 	// FRAME AND FRAME DERIVATIVES

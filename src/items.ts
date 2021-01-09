@@ -8,8 +8,8 @@ import { BulletGun } from 'entities/bullet_gun';
 import { BombGun } from 'entities/bomb_gun';
 
 const itemWeights = new Map([
-	[Sword, 1],
-	[BulletGun, 1],
+	[Sword, 3],
+	[BulletGun, 2],
 	[BombGun, 1],
 	[Shell, 1],
 	[Nuke, 1],

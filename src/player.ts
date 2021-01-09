@@ -35,12 +35,27 @@ export class Player {
 		divChild.style.marginLeft = Math.floor(66 * (-.5 + divChild.children.length / 2)) + 'px';
 	}
 
-	private _chooseCharacter(name: string): void {
+	/** Gets the viewport. */
+	get viewport(): Birch.Viewport {
+		return this._viewport;
+	}
+
+	/** Gets the camera. */
+	get camera(): Camera | undefined {
+		return this._camera;
+	}
+
+	/** Gets the character. */
+	get character(): Character | undefined {
+		return this._character;
+	}
+
+	private _chooseCharacter(): void {
 		// Attach the scene to the viewport.
 		this._viewport.stage.scene = this._app.scene;
 
 		// Create the character.
-		this._character = new Character(this._app, name);
+		this._character = new Character(this._app, this._index, this._characterName);
 		this._app.addEntity(this._character);
 		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (this._app.level.size.x - 2), 1 + Math.random() * (this._app.level.size.y - 2)));
 
@@ -133,7 +148,7 @@ export class Player {
 	/** Destroys this. */
 	destroy(): void {
 		if (this._character !== undefined) {
-			this._app.removeEntity(this._character);
+			this._app.removeAndDestroyEntity(this._character);
 			this._character.destroy();
 		}
 		this._app.engine.viewports.destroy(this._viewport);
@@ -149,14 +164,23 @@ export class Player {
 		this._updateCameraViewSize();
 	}
 
-	/** Gets the viewport. */
-	get viewport(): Birch.Viewport {
-		return this._viewport;
+	/** Increments the score by the amount. */
+	addScore(amount: number): void {
+		this._score += amount;
 	}
 
-	/** Gets the camera. */
-	get camera(): Camera | undefined {
-		return this._camera;
+	/** Called when the character dies. */
+	die(): void {
+		// Destroy the character.
+		this._app.removeAndDestroyEntity(this._character!);
+
+		// Create the character.
+		this._character = new Character(this._app, this._index, this._characterName);
+		this._app.addEntity(this._character);
+		this._character.setPosition(new Birch.Vector2(1 + Math.random() * (this._app.level.size.x - 2), 1 + Math.random() * (this._app.level.size.y - 2)));
+
+		// Update the camera's focus.
+		this._camera!.setEntityFocus(this._character);
 	}
 
 	/** Updates the camera's view size. */
@@ -184,16 +208,7 @@ export class Player {
 			else if (buttonIndex === 1 && newValue === 1) {
 				// Dropping.
 				if (this._character.holdingEntity !== undefined) {
-					const heldItem = this._character.holdingEntity;
-					// Set the item as not held.
-					this._character.setHoldingEntity(undefined);
-					heldItem.setHeldBy(undefined);
-					// Do the toss physics.
-					const newVelocity = Birch.Vector2.pool.get();
-					newVelocity.rot(Birch.Vector2.UnitX, this._character.rotation);
-					newVelocity.addMult(newVelocity, 5.0, this._character.velocity, 1);
-					heldItem.setVelocity(newVelocity);
-					Birch.Vector2.pool.release(newVelocity);
+					this._character.dropHeldItem();
 				}
 				// Picking up.
 				else {
@@ -222,15 +237,15 @@ export class Player {
 			if (buttonIndex === 0 && newValue === 1) {
 				const selectedImg = this._viewport.div.firstElementChild!.querySelector('.selected') as (HTMLImageElement | null);
 				if (selectedImg !== null) {
-					const sprite = selectedImg.dataset.sprite!;
 					this._viewport.div.innerHTML = '';
-					this._chooseCharacter(sprite);
+					this._characterName = selectedImg.dataset.sprite!;
+					this._chooseCharacter();
 				}
 			}
 		}
 	}
 
-	static setupCharacterSpriteList(): Promise<void> {
+	static async setupCharacterSpriteList(): Promise<void> {
 		return fetch('assets/sprites/characters/list.txt').then((response) => response.text()).then((text) => {
 			const sprites = text.split('\n');
 			for (const sprite of sprites) {
@@ -246,6 +261,9 @@ export class Player {
 	private _index: number;
 	private _app: ArenaSplodeApp;
 	private _viewport: Birch.Viewport;
+	private _characterName: string = '';
 	private _camera: Camera | undefined;
 	private _character: Character | undefined;
+
+	private _score: number = 0;
 }
