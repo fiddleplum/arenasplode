@@ -50,7 +50,7 @@ export class Entity {
 	setScale(scale: number): void {
 		this._scale = scale;
 		const scaleXY = Birch.Vector2.pool.get();
-		scaleXY.set(2 * this._radius * scale, 2 * this._radius * scale);
+		scaleXY.set(2 * this._radius * this._scale, 2 * this._radius * this._scale);
 		this._sprite.setScale(scaleXY);
 		Birch.Vector2.pool.release(scaleXY);
 	}
@@ -86,6 +86,10 @@ export class Entity {
 	/** Sets the radius. */
 	setRadius(radius: number): void {
 		this._radius = radius;
+		const scaleXY = Birch.Vector2.pool.get();
+		scaleXY.set(2 * this._radius * this._scale, 2 * this._radius * this._scale);
+		this._sprite.setScale(scaleXY);
+		Birch.Vector2.pool.release(scaleXY);
 	}
 
 	/** Gets the mass. */
@@ -113,7 +117,7 @@ export class Entity {
 		return this._bounciness;
 	}
 
-	/** Sets the bounciness. */
+	/** Sets the bounciness. A negative number means it doesn't bound off of walls. */
 	setBounciness(bounciness: number): void {
 		this._bounciness = bounciness;
 	}
@@ -197,7 +201,7 @@ export class Entity {
 		if (tile === undefined) {
 			return;
 		}
-		if (tile.type === Tile.Type.Wall) {
+		if (this._bounciness >= 0 && tile.type === Tile.Type.Wall) {
 			const offset = Birch.Vector2.pool.get();
 			const contains = this.getClosestPoint(offset, tileCoords);
 			offset.sub(this._position, offset);
@@ -267,7 +271,7 @@ export class Entity {
 	/** The mass of the entity. */
 	private _mass = 1;
 
-	/** The friction of the entity. */
+	/** The friction of the entity with the floor. */
 	private _friction = 32;
 
 	/** When doing collision physics, this is the spring coefficient. */

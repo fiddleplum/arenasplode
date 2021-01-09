@@ -35,6 +35,8 @@ export class Bomb extends Projectile {
 	private _explode(): void {
 		const explosion = new Explosion(this.app);
 		explosion.setPosition(this.position);
+		explosion.setScale(this.scale);
+		explosion.setPlayerIndex(this.playerIndex);
 		this.app.addEntity(explosion);
 		this.app.removeAndDestroyEntity(this);
 	}
