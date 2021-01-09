@@ -194,22 +194,22 @@ export class Entity {
 		if (tile.type === Tile.Type.Wall) {
 			const offset = Birch.Vector2.pool.get();
 			const contains = this.getClosestPoint(offset, tileCoords);
-			offset.sub(this.position, offset);
+			offset.sub(this._position, offset);
 			const offsetNorm = offset.norm;
-			if (offsetNorm > 0) {
+			if (0 < offsetNorm && offsetNorm < this._radius * this._scale) {
 				if (contains) {
-					offset.mult(offset, (-this.radius - offsetNorm) / offsetNorm);
+					offset.mult(offset, (-this._radius * this._scale - offsetNorm) / offsetNorm);
 				}
 				else {
-					offset.mult(offset, (this.radius - offsetNorm) / offsetNorm);
+					offset.mult(offset, (this._radius * this._scale - offsetNorm) / offsetNorm);
 				}
 				const newPosition = Birch.Vector2.pool.get();
-				newPosition.add(this.position, offset);
+				newPosition.add(this._position, offset);
 				this.setPosition(newPosition);
 				Birch.Vector2.pool.release(newPosition);
 				const newVelocity = Birch.Vector2.pool.get();
 				offset.normalize(offset);
-				newVelocity.addMult(this.velocity, 1, offset, Math.max(0, -(1 + this._bounciness) * this.velocity.dot(offset)));
+				newVelocity.addMult(this._velocity, 1, offset, Math.max(0, -(1 + this._bounciness) * this._velocity.dot(offset)));
 				this.setVelocity(newVelocity);
 				Birch.Vector2.pool.release(newVelocity);
 			}
@@ -221,7 +221,7 @@ export class Entity {
 	protected getClosestPoint(closestPoint: Birch.Vector2, tileCoords: Birch.Vector2): boolean {
 		const tileBounds = Birch.Rectangle.pool.get();
 		tileBounds.set(tileCoords.x, tileCoords.y, 1, 1);
-		const contains = tileBounds.closest(closestPoint, this.position, false);
+		const contains = tileBounds.closest(closestPoint, this._position, false);
 		Birch.Rectangle.pool.release(tileBounds);
 		return contains;
 	}
