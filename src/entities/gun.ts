@@ -36,6 +36,7 @@ export class Gun extends Entity {
 		if (this.heldBy === undefined) {
 			return;
 		}
+		this._playFireSound();
 		const projectile = new this._projectileType(this.app);
 		projectile.setPlayerIndex(this.heldBy.playerIndex);
 		projectile.setScale(this.scale);
@@ -46,11 +47,16 @@ export class Gun extends Entity {
 		Birch.Vector2.pool.release(projectilePosition);
 		const projectileVelocity = Birch.Vector2.pool.get();
 		projectileVelocity.rot(Birch.Vector2.UnitX, this.heldBy.rotation);
-		projectileVelocity.mult(projectileVelocity, 15);
+		projectileVelocity.mult(projectileVelocity, this._projectileSpeed);
 		projectile.setVelocity(projectileVelocity);
 		Birch.Vector2.pool.release(projectileVelocity);
 		this.app.addEntity(projectile);
 	}
+
+	protected _playFireSound(): void {
+	}
+
+	protected _projectileSpeed: number = 15;
 
 	private _projectileType: { new (app: ArenaSplodeApp): Projectile };
 }

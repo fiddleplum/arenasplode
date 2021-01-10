@@ -9,6 +9,12 @@ export class BulletGun extends Gun {
 		super(app, 'bullet', Bullet);
 	}
 
+	protected _playFireSound(): void {
+		const sound = this.app.engine.sounds.get(`bullet-gun`);
+		sound.play();
+		this.app.engine.sounds.release(sound);
+	}
+
 	/** Load the resources needed for the entity. */
 	static loadResources(engine: Birch.Engine): Promise<void>[] {
 		return [

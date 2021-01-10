@@ -10,6 +10,10 @@ export class Explosion extends Entity {
 		this.setBounciness(-1);
 		this.sprite.setTextureName('items/explosion');
 
+		const sound = this.app.engine.sounds.get(`explosion`);
+		sound.play();
+		this.app.engine.sounds.release(sound);
+
 		// Set the spawn time for timing the explosion.
 		this._spawnTime = Date.now() / 1000;
 	}
@@ -36,6 +40,7 @@ export class Explosion extends Entity {
 	static loadResources(engine: Birch.Engine): Promise<void>[] {
 		return [
 			engine.renderer.textures.load(`items/explosion`),
+			engine.sounds.load(`explosion`)
 		];
 	}
 

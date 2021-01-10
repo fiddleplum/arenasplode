@@ -12,6 +12,7 @@ export class Bomb extends Projectile {
 	constructor(app: ArenaSplodeApp) {
 		super(app);
 		this.setBounciness(0.25);
+		this.setRadius(0.25);
 		this.sprite.setTextureName('items/bomb');
 	}
 
