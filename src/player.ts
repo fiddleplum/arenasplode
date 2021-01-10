@@ -82,26 +82,37 @@ export class Player {
 		}
 		if (this._character !== undefined) {
 			// Handle moving.
-			let x = controller.axis(0);
-			let y = controller.axis(1);
-			if (Math.abs(x) < axisThreshold) {
-				x = 0;
+			const move = Birch.Vector2.pool.get();
+			const face = Birch.Vector2.pool.get();
+			move.set(controller.axis(0), -controller.axis(1));
+			face.set(controller.axis(2), -controller.axis(3));
+			if (move.norm < axisThreshold) {
+				move.set(0, 0);
 			}
-			if (Math.abs(y) < axisThreshold) {
-				y = 0;
+			if (face.norm < axisThreshold) {
+				face.set(0, 0);
 			}
-			if (x !== 0 || y !== 0) {
+			// The character is moving.
+			if (move.x !== 0 || move.y !== 0) {
 				// Update the velocity.
-				const velocity = this._character.velocity;
 				const newVelocity = Birch.Vector2.pool.get();
-				newVelocity.set(velocity.x + x, velocity.y - y);
+				newVelocity.add(this._character.velocity, move);
 				this._character.setVelocity(newVelocity);
 				Birch.Vector2.pool.release(newVelocity);
 
-				// Point the character in the right direction.
-				const newAngle = Math.atan2(-y, x);
+				// Point the character in the right direction if the face axes aren't being used.
+				if (face.x === 0 && face.y === 0) {
+					const newAngle = Math.atan2(move.y, move.x);
+					this._character.setRotation(newAngle);
+				}
+			}
+			// The character is facing a direction.
+			if (face.x !== 0 || face.y !== 0) {
+				const newAngle = Math.atan2(face.y, face.x);
 				this._character.setRotation(newAngle);
 			}
+			Birch.Vector2.pool.release(move);
+			Birch.Vector2.pool.release(face);
 		}
 		else { // No character, so we're at character selection.
 			// Handle moving.
@@ -213,36 +224,12 @@ export class Player {
 	private _buttonCallback(_controllerIndex: number, buttonIndex: number, newValue: number): void {
 		if (this._character !== undefined) {
 			// Use item.
-			if (buttonIndex === 0 && newValue === 1) {
+			if ((buttonIndex === 0 || buttonIndex === 7) && newValue === 1) {
 				this._character.useHeld();
 			}
 			// Pickup or drop an item.
-			else if (buttonIndex === 1 && newValue === 1) {
-				// Dropping.
-				if (this._character.holdingEntity !== undefined) {
-					this._character.dropHeldItem();
-				}
-				// Picking up.
-				else {
-					// Get the nearest entity intersecting with the character that can be picked up.
-					let nearestIntersectingEntity: Entity | undefined = undefined;
-					let nearestIntersectingDistance = Number.POSITIVE_INFINITY;
-					for (const intersectingEntity of this._character.intersectingEntities) {
-						// If it can be held and isn't currently held.
-						if (intersectingEntity.canBeHeld && intersectingEntity.heldBy === undefined) {
-							const distance = this._character.position.distance(intersectingEntity.position);
-							if (distance < nearestIntersectingDistance) {
-								nearestIntersectingDistance = distance;
-								nearestIntersectingEntity = intersectingEntity;
-							}
-						}
-					}
-					// If there was an valid holdable entity, do it.
-					if (nearestIntersectingEntity !== undefined) {
-						this._character.setHoldingEntity(nearestIntersectingEntity);
-						nearestIntersectingEntity.setHeldBy(this._character);
-					}
-				}
+			else if ((buttonIndex === 1 || buttonIndex === 6) && newValue === 1) {
+				this._character.pickUpOrDrop();
 			}
 		}
 		else {

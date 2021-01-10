@@ -148,6 +148,35 @@ export class Character extends Entity {
 		}
 	}
 
+	/** Pick up and item or drop the equipped one. */
+	pickUpOrDrop(): void {
+		// Dropping.
+		if (this.holdingEntity !== undefined) {
+			this.dropHeldItem();
+		}
+		// Picking up.
+		else {
+			// Get the nearest entity intersecting with the character that can be picked up.
+			let nearestIntersectingEntity: Entity | undefined = undefined;
+			let nearestIntersectingDistance = Number.POSITIVE_INFINITY;
+			for (const intersectingEntity of this.intersectingEntities) {
+				// If it can be held and isn't currently held.
+				if (intersectingEntity.canBeHeld && intersectingEntity.heldBy === undefined) {
+					const distance = this.position.distance(intersectingEntity.position);
+					if (distance < nearestIntersectingDistance) {
+						nearestIntersectingDistance = distance;
+						nearestIntersectingEntity = intersectingEntity;
+					}
+				}
+			}
+			// If there was an valid holdable entity, do it.
+			if (nearestIntersectingEntity !== undefined) {
+				this.setHoldingEntity(nearestIntersectingEntity);
+				nearestIntersectingEntity.setHeldBy(this);
+			}
+		}
+	}
+
 	update(deltaTime: number): void {
 		super.update(deltaTime);
 		if(this.velocity.norm > this._maxSpeed) {
