@@ -180,14 +180,18 @@ export class Entity {
 		// Friction
 		const velocityNorm = this._velocity.norm;
 		if (this._friction * deltaTime < velocityNorm) {
-			const frictionForce = Birch.Vector2.pool.get();
-			frictionForce.mult(this._velocity, -this._friction * deltaTime / velocityNorm);
-			this._velocity.addMult(this._velocity, 1, frictionForce, 1);
-			Birch.Vector2.pool.release(frictionForce);
+			this._velocity.setNorm(velocityNorm - this._friction * deltaTime);
 		}
 		else {
 			this._velocity.set(0, 0);
 		}
+		if (this._friction * deltaTime < this._angularVelocity) {
+			this._angularVelocity -= this._friction * deltaTime;
+		}
+		else {
+			this._angularVelocity = 0;
+		}
+		// Apply the velocity and angular velocity.
 		this._position.addMult(this._position, 1, this._velocity, deltaTime);
 		this._rotation += this._angularVelocity * deltaTime;
 	}
@@ -236,6 +240,7 @@ export class Entity {
 		return contains;
 	}
 
+	/** Push both this and the other entity away from each other by the velocity amount. */
 	pushBack(entity: Entity, amount: number): void {
 		const push = Birch.Vector2.pool.get();
 		push.sub(this._position, entity.position);
@@ -244,6 +249,11 @@ export class Entity {
 		push.addMult(entity.velocity, 1, push, -1);
 		entity.setVelocity(push);
 		Birch.Vector2.pool.release(push);
+	}
+
+	/** Load the resources needed for the entity. */
+	static loadResources(_engine: Birch.Engine): Promise<void>[] {
+		return [];
 	}
 
 	// FRAME AND FRAME DERIVATIVES

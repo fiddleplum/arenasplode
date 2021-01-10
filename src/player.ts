@@ -23,8 +23,8 @@ export class Player {
 
 		// Show the character selection screen.
 		let html = '<div class="character-selection">';
-		for (let i = 0; i < Player._characterSpriteList.length; i++) {
-			const sprite = Player._characterSpriteList[i];
+		for (let i = 0; i < Character.characterSpriteList.length; i++) {
+			const sprite = Character.characterSpriteList[i];
 			html += `<img class="character${i === 0 ? ' selected' : ''}" data-sprite="${sprite}" src="assets/sprites/characters/${sprite}.png"></img>`;
 		}
 		html += '</div>';
@@ -63,6 +63,15 @@ export class Player {
 		this._camera = new Camera(this._viewport.stage);
 		this._camera.setEntityFocus(this._character);
 		this._updateCameraViewSize();
+
+		// Update the GUI.
+		this._viewport.div.innerHTML = `<div class="healthbar"><div class="health"></div></div>`;
+		this.updateHealthBar();
+	}
+
+	updateHealthBar(): void {
+		const healthDiv = this._viewport.div.querySelector('.health') as HTMLDivElement;
+		healthDiv.style.width = `${this._character!.health * 100}%`;
 	}
 
 	updateControls(): void {
@@ -237,26 +246,12 @@ export class Player {
 			if (buttonIndex === 0 && newValue === 1) {
 				const selectedImg = this._viewport.div.firstElementChild!.querySelector('.selected') as (HTMLImageElement | null);
 				if (selectedImg !== null) {
-					this._viewport.div.innerHTML = '';
 					this._characterName = selectedImg.dataset.sprite!;
 					this._chooseCharacter();
 				}
 			}
 		}
 	}
-
-	static async setupCharacterSpriteList(): Promise<void> {
-		return fetch('assets/sprites/characters/list.txt').then((response) => response.text()).then((text) => {
-			const sprites = text.split('\n');
-			for (const sprite of sprites) {
-				if (sprite !== '') {
-					this._characterSpriteList.push(sprite);
-				}
-			}
-		});
-	}
-
-	private static _characterSpriteList: string[] = [];
 
 	private _index: number;
 	private _app: ArenaSplodeApp;

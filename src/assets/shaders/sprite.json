@@ -16,6 +16,7 @@
 		"  float rotation;",
 		"  vec2 scale;",
 		"  float level;",
+		"  vec4 tint;",
 		"};",
 		"out vec2 v_uv;",
 		"void main() {",
@@ -28,11 +29,18 @@
 	"fragment": [
 		"#version 300 es",
 		"precision highp float;",
+		"uniform model {",
+		"  vec2 position;",
+		"  float rotation;",
+		"  vec2 scale;",
+		"  float level;",
+		"  vec4 tint;",
+		"};",
 		"uniform sampler2D colorTexture;",
 		"in vec2 v_uv;",
 		"out vec4 o_color;",
 		"void main() {",
-		"  o_color = texture(colorTexture, v_uv);",
+		"  o_color = texture(colorTexture, v_uv) * tint;",
 		"}"],
 	"blending": "mix"
 }

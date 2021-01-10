@@ -40,4 +40,11 @@ export class Bomb extends Projectile {
 		this.app.addEntity(explosion);
 		this.app.removeAndDestroyEntity(this);
 	}
+
+	/** Load the resources needed for the entity. */
+	static loadResources(engine: Birch.Engine): Promise<void>[] {
+		return [
+			engine.renderer.textures.load(`items/bomb`),
+		];
+	}
 }

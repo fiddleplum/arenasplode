@@ -1,4 +1,5 @@
 import { ArenaSplodeApp } from 'app';
+import { Birch } from 'birch';
 import { Entity } from './entity';
 
 export class Explosion extends Entity {
@@ -29,6 +30,13 @@ export class Explosion extends Entity {
 		else {
 			this.app.removeAndDestroyEntity(this);
 		}
+	}
+
+	/** Load the resources needed for the entity. */
+	static loadResources(engine: Birch.Engine): Promise<void>[] {
+		return [
+			engine.renderer.textures.load(`items/explosion`),
+		];
 	}
 
 	/** The time when the explosion was created. */

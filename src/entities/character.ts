@@ -22,23 +22,6 @@ export class Character extends Entity {
 
 		// Set the file name for the gib pieces.
 		this._gibName = `characters/${name}`;
-
-		// Load the sounds.
-		for (let i = 0; i < 3; i++) {
-			this.app.engine.soundSystem.load(`assets/sounds/hurt${i}.ogg`);
-			this.app.engine.soundSystem.load(`assets/sounds/death${i}.ogg`);
-		}
-		this.app.engine.soundSystem.load(`assets/sounds/multikill.ogg`);
-	}
-
-	destroy(): void {
-		// Unload the sounds.
-		for (let i = 0; i < 3; i++) {
-			this.app.engine.soundSystem.unload(`assets/sounds/hurt${i}.ogg`);
-			this.app.engine.soundSystem.unload(`assets/sounds/death${i}.ogg`);
-		}
-		this.app.engine.soundSystem.unload(`assets/sounds/multikill.ogg`);
-		super.destroy();
 	}
 
 	get playerIndex(): number {
@@ -57,6 +40,10 @@ export class Character extends Entity {
 		return this._swinging;
 	}
 
+	get health(): number {
+		return this._health;
+	}
+
 	protected setMaxSpeed(maxSpeed: number): void {
 		this._maxSpeed = maxSpeed;
 	}
@@ -64,7 +51,9 @@ export class Character extends Entity {
 	incNumKills(): void {
 		this._numKills += 1;
 		if (this._numKills % 3 == 0) {
-			this.app.engine.soundSystem.play(`assets/sounds/multikill.ogg`);
+			const multikillSound = this.app.engine.sounds.get(`multikill`);
+			multikillSound.play();
+			this.app.engine.sounds.release(multikillSound);
 		}
 	}
 
@@ -99,9 +88,14 @@ export class Character extends Entity {
 			amount = this._health;
 		}
 		this._health -= amount;
+		this.app.getPlayer(this._playerIndex)!.updateHealthBar();
 		if (Date.now() / 1000 - this._harmSoundTime > .125) {
 			const variant = Math.floor(3 * Math.random());
-			this.app.engine.soundSystem.play(`assets/sounds/hurt${variant}.ogg`);
+			if (this._health > 0) {
+				const hurtSound = this.app.engine.sounds.get(`hurt${variant}`);
+				hurtSound.play();
+				this.app.engine.sounds.release(hurtSound);
+			}
 			this._harmSoundTime = Date.now() / 1000;
 		}
 		if (playerIndex !== undefined && playerIndex !== this._playerIndex) {
@@ -115,7 +109,10 @@ export class Character extends Entity {
 		if (this._health <= 0) {
 			// Play the death sound.
 			const variant = Math.floor(3 * Math.random());
-			this.app.engine.soundSystem.play(`assets/sounds/death${variant}.ogg`);
+			// THE DEATH SOUND DOESNT HAPPEN. MAYBE BECAUSE ITS ALREADY PLAYING HURT?
+			const deathSound = this.app.engine.sounds.get(`death${variant}`);
+			deathSound.play();
+			this.app.engine.sounds.release(deathSound);
 			// Drop any item held.
 			this.dropHeldItem();
 			// Add some gibs.
@@ -185,6 +182,36 @@ export class Character extends Entity {
 		}
 	}
 
+	static async getCharacterSpriteList(): Promise<void> {
+		const text = await fetch('assets/sprites/characters/list.txt').then(response => response.text());
+		const sprites = text.split('\n');
+		for (const sprite of sprites) {
+			if (sprite !== '') {
+				this.characterSpriteList.push(sprite);
+			}
+		}
+	}
+
+	/** Load the resources needed for the entity. */
+	static loadResources(engine: Birch.Engine): Promise<void>[] {
+		const promises: Promise<void>[] = [];
+		promises.push(this.getCharacterSpriteList().then(() => {
+			const p: Promise<void>[] = [];
+			for (let i = 0; i < this.characterSpriteList.length; i++) {
+				p.push(engine.renderer.textures.load(`characters/${this.characterSpriteList[i]}`));
+			}
+			return Promise.all(p) as unknown as Promise<void>;
+		}));
+		for (let i = 0; i < 3; i++) {
+			promises.push(engine.sounds.load(`hurt${i}`));
+			promises.push(engine.sounds.load(`death${i}`));
+		}
+		promises.push(engine.sounds.load(`multikill`));
+		return promises;
+	}
+
+	static characterSpriteList: string[] = [];
+
 	private _playerIndex: number;
 
 	private _holdingEntity: Entity | undefined;
@@ -194,7 +221,7 @@ export class Character extends Entity {
 
 	private _maxSpeed = 20;
 
-	private _health: number = 100;
+	private _health: number = 1;
 	private _harmSoundTime: number = 0;
 	private _numKills: number = 0;
 	private _gibName: string = '';

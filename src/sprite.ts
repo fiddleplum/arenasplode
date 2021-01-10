@@ -38,9 +38,6 @@ export class Sprite {
 		// Increase the number of sprite entities by 1.
 		Sprite._count += 1;
 
-		// Create the texture.
-		this._texture = this._engine.renderer.textures.create();
-
 		// Setup the model.
 		this._model = this._engine.renderer.models.create();
 		this._model.mesh = Sprite._mesh;
@@ -63,12 +60,15 @@ export class Sprite {
 		}, {
 			name: 'colorTexture',
 			type: Birch.Render.UniformGroup.Type.sampler2D
+		}, {
+			name: 'tint',
+			type: Birch.Render.UniformGroup.Type.vec4
 		}]);
 		this._model.uniforms.setUniform('position', Birch.Vector2.Zero.array);
 		this._model.uniforms.setUniform('rotation', 0);
 		this._model.uniforms.setUniform('scale', Birch.Vector2.One.array);
 		this._model.uniforms.setUniform('level', level);
-		this._model.uniforms.setUniform('colorTexture', this._texture);
+		this._model.uniforms.setUniform('tint', Birch.Color.White.array);
 		this._scene.models.add(this._model);
 	}
 
@@ -76,7 +76,9 @@ export class Sprite {
 	destroy(): void {
 		this._scene.models.remove(this._model);
 		this._engine.renderer.models.destroy(this._model);
-		this._engine.renderer.textures.destroy(this._texture);
+		if (this._texture !== undefined) {
+			this._engine.renderer.textures.release(this._texture);
+		}
 
 		Sprite._count -= 1;
 		if (Sprite._count === 0) {
@@ -107,7 +109,16 @@ export class Sprite {
 
 	/** Sets the texture name. */
 	setTextureName(name: string): void {
-		this._texture.setSource(`assets/sprites/${name}.png`);
+		if (this._texture !== undefined) {
+			this._engine.renderer.textures.release(this._texture);
+		}
+		this._texture = this._engine.renderer.textures.get(name);
+		this._model.uniforms.setUniform(`colorTexture`, this._texture);
+	}
+
+	/** Sets the tint. */
+	setTint(color: Birch.ColorReadonly): void {
+		this._model.uniforms.setUniform('tint', color.array);
 	}
 
 	private static _mesh: Birch.Render.Mesh;
@@ -117,5 +128,5 @@ export class Sprite {
 	private _engine: Birch.Engine;
 	private _scene: Birch.Render.Scene;
 	private _model: Birch.Render.Model;
-	private _texture: Birch.Render.Texture;
+	private _texture: Birch.Render.Texture | undefined;
 }

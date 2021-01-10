@@ -23,8 +23,7 @@ export class Level {
 		this._shader = this._engine.renderer.shaders.create();
 
 		// Create the texture.
-		this._texture = this._engine.renderer.textures.create();
-		this._texture.setSource('assets/sprites/tiles.png');
+		this._texture = this._engine.renderer.textures.get(`tiles`);
 
 		// Setup the model.
 		this._model = this._engine.renderer.models.create();
@@ -47,12 +46,16 @@ export class Level {
 		}, {
 			name: 'colorTexture',
 			type: Birch.Render.UniformGroup.Type.sampler2D
+		}, {
+			name: 'tint',
+			type: Birch.Render.UniformGroup.Type.vec4
 		}]);
 		this._model.uniforms.setUniform('position', [0, 0]);
 		this._model.uniforms.setUniform('rotation', 0);
 		this._model.uniforms.setUniform('scale', [1, 1]);
 		this._model.uniforms.setUniform('level', 0);
 		this._model.uniforms.setUniform('colorTexture', this._texture);
+		this._model.uniforms.setUniform('tint', Birch.Color.White.array);
 		this._scene.models.add(this._model);
 
 		// Set the size of the map.
@@ -68,7 +71,7 @@ export class Level {
 	destroy(): void {
 		this._scene.models.remove(this._model);
 		this._engine.renderer.models.destroy(this._model);
-		this._engine.renderer.textures.destroy(this._texture);
+		this._engine.renderer.textures.release(this._texture);
 		this._engine.renderer.shaders.destroy(this._shader);
 		this._engine.renderer.meshes.destroy(this._mesh);
 	}
