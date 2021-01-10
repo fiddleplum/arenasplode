@@ -190,6 +190,9 @@ export class Player {
 
 		// Update the camera's focus.
 		this._camera!.setEntityFocus(this._character);
+
+		// Update the health bar.
+		this.updateHealthBar();
 	}
 
 	/** Updates the camera's view size. */

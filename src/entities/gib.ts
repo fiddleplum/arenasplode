@@ -9,7 +9,7 @@ export class Gib extends Entity {
 		super(app, 1);
 		this.setRadius(0.2);
 		this.sprite.setTextureName(filename);
-		this.sprite.setTint(new Birch.Color(0.25, 0.25, 0.25, 1.0));
+		this.sprite.setTint(new Birch.Color(0.5, 0.5, 0.5, 1.0));
 	}
 
 	onTouch(entity: Entity): void {
