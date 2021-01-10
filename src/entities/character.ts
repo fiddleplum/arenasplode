@@ -80,7 +80,7 @@ export class Character extends Entity {
 		}
 	}
 
-	harm(playerIndex: number, amount: number): void {
+	harm(playerIndex: number | undefined, amount: number): void {
 		if (this._health === 0) {
 			return;
 		}
@@ -109,7 +109,6 @@ export class Character extends Entity {
 		if (this._health <= 0) {
 			// Play the death sound.
 			const variant = Math.floor(3 * Math.random());
-			// THE DEATH SOUND DOESNT HAPPEN. MAYBE BECAUSE ITS ALREADY PLAYING HURT?
 			const deathSound = this.app.engine.sounds.get(`death${variant}`);
 			deathSound.play();
 			this.app.engine.sounds.release(deathSound);

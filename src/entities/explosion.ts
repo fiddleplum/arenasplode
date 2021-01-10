@@ -1,5 +1,6 @@
 import { ArenaSplodeApp } from 'app';
 import { Birch } from 'birch';
+import { Character } from './character';
 import { Entity } from './entity';
 
 export class Explosion extends Entity {
@@ -24,6 +25,18 @@ export class Explosion extends Entity {
 
 	setPlayerIndex(playerIndex: number | undefined): void {
 		this._playerIndex = playerIndex;
+	}
+
+	onTouch(entity: Entity): void {
+		const push = Birch.Vector2.pool.get();
+		push.sub(this.position, entity.position);
+		if (entity instanceof Character) {
+			entity.harm(this._playerIndex, 0.25 / (1.0 + push.norm));
+		}
+		push.setNorm(50);
+		push.sub(this.velocity, push);
+		entity.setVelocity(push);
+		Birch.Vector2.pool.release(push);
 	}
 
 	update(_deltaTime: number): void {

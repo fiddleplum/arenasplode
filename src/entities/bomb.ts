@@ -17,7 +17,7 @@ export class Bomb extends Projectile {
 	}
 
 	onTouch(entity: Entity): void {
-		if (entity instanceof Character) {
+		if (entity instanceof Character && this.playerIndex !== entity.playerIndex) {
 			this._explode();
 		}
 	}
